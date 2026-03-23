@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         String    @default("ADMIN")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  patients     Patient[]
+}
+
+model Patient {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  birthDate      DateTime
+  diagnosis      String?
+  supportLevel   Int?
+  mainGoals      String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  userId         String          @db.Uuid
+  behaviors      BehaviorLog[]
+  user           User            @relation(fields: [userId], references: [id])
+  sensoryProfile SensoryProfile?
+  sessions       Session[]
+}
+
+model SensoryProfile {
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  patientId      String  @unique @db.Uuid
+  auditory       String?
+  visual         String?
+  tactile        String?
+  vestibular     String?
+  proprioceptive String?
+  patient        Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  patientId      String   @db.Uuid
+  date           DateTime @default(now())
+  notes          String
+  mood           String?
+  evolutionScore Int?
+  createdAt      DateTime @default(now())
+  patient        Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model BehaviorLog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  patientId    String   @db.Uuid
+  timestamp    DateTime @default(now())
+  behaviorType String
+  intensity    Int?
+  trigger      String?
+  context      String?
+  duration     Int?
+  patient      Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
