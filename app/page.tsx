@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { Activity, Plus, Pill, BrainCircuit, LineChart } from 'lucide-react';
+import { Activity, Plus, Pill, BrainCircuit, LineChart, LogOut } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
 
 // Components
 import { DashboardView } from '@/components/DashboardView';
@@ -16,6 +17,7 @@ import { CheckIn, Medication, Mood } from './types';
 import { getCheckIns, getMedications } from './actions';
 
 export default function SymptomTrackerApp() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [medications, setMedications] = useState<Medication[]>([]);
@@ -43,8 +45,8 @@ export default function SymptomTrackerApp() {
         setIsLoaded(true);
       }
     }
-    loadData();
-  }, []);
+    if (session) loadData();
+  }, [session]);
 
   if (!isLoaded) return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500">Carregando...</div>;
 
@@ -58,10 +60,10 @@ export default function SymptomTrackerApp() {
     </button>
   );
 
-  const SidebarItem = ({ icon, label, tab }: { icon: any, label: string, tab: string }) => (
+  const SidebarItem = ({ icon, label, tab, onClick, className }: any) => (
     <button 
-      onClick={() => setActiveTab(tab)} 
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-sm font-medium ${activeTab === tab ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+      onClick={onClick || (() => setActiveTab(tab))} 
+      className={className || `flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-sm font-medium ${activeTab === tab ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
     >
       {icon}
       {label}
@@ -87,13 +89,26 @@ export default function SymptomTrackerApp() {
           </div>
           <h1 className="font-bold text-lg tracking-tight text-slate-800">NeuroTracker</h1>
         </div>
-        <nav className="flex flex-col gap-2">
+        <nav className="flex flex-col gap-2 flex-1">
           <SidebarItem icon={<Activity />} label="Início" tab="dashboard" />
           <SidebarItem icon={<Plus />} label="Check-in Diário" tab="checkin" />
           <SidebarItem icon={<Pill />} label="Medicamentos" tab="meds" />
           <SidebarItem icon={<BrainCircuit />} label="Insights com IA" tab="insights" />
           <SidebarItem icon={<LineChart />} label="Relatórios" tab="reports" />
         </nav>
+
+        <div className="border-t border-slate-100 pt-4 mt-auto">
+          <div className="px-4 mb-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Usuário</p>
+            <p className="text-sm font-medium text-slate-700 truncate">{session?.user?.name || 'Admin'}</p>
+          </div>
+          <SidebarItem 
+            icon={<LogOut size={18} />} 
+            label="Sair do Sistema" 
+            onClick={() => signOut()}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-sm font-medium text-rose-600 hover:bg-rose-50 w-full"
+          />
+        </div>
       </aside>
 
       {/* Main Content */}

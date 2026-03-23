@@ -3,16 +3,16 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
-// Busca o ID do usuário admin para testes (em prod viria da sessão)
-async function getAdminId() {
-  const admin = await prisma.user.findUnique({
-    where: { email: 'admin@neurotracker.com' }
-  });
-  return admin?.id;
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./api/auth/[...nextauth]/route";
+
+async function getUserId() {
+  const session = await getServerSession(authOptions);
+  return (session?.user as any)?.id;
 }
 
 export async function getCheckIns() {
-  const userId = await getAdminId();
+  const userId = await getUserId();
   if (!userId) return [];
   
   return await prisma.checkIn.findMany({
@@ -22,12 +22,10 @@ export async function getCheckIns() {
 }
 
 export async function saveCheckIn(data: any) {
-  const userId = await getAdminId();
-  if (!userId) throw new Error('Usuário não encontrado');
+  const userId = await getUserId();
+  if (!userId) throw new Error('Acesso não autorizado');
 
   const { id, ...rest } = data;
-  
-  // No Prisma, o date precisa ser um objeto Date
   const dateObj = new Date(rest.date);
 
   await prisma.checkIn.create({
@@ -42,7 +40,7 @@ export async function saveCheckIn(data: any) {
 }
 
 export async function getMedications() {
-  const userId = await getAdminId();
+  const userId = await getUserId();
   if (!userId) return [];
 
   return await prisma.medication.findMany({
@@ -53,8 +51,8 @@ export async function getMedications() {
 }
 
 export async function addMedication(data: any) {
-  const userId = await getAdminId();
-  if (!userId) throw new Error('Usuário não encontrado');
+  const userId = await getUserId();
+  if (!userId) throw new Error('Acesso não autorizado');
 
   await prisma.medication.create({
     data: {
