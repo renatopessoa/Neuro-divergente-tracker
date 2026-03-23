@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { Activity, Pill, Check, ChevronRight } from 'lucide-react';
+import { Activity, Pill, Check, ChevronRight, ClipboardList } from 'lucide-react';
 import { format, isSameDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 import { MoodIcon } from './MoodIcon';
@@ -11,13 +11,15 @@ import { toggleMedLog } from '../app/actions';
 interface DashboardViewProps {
   checkIns: CheckIn[];
   medications: Medication[];
+  behaviorLogs: any[];
   setActiveTab: (tab: string) => void;
   onRefresh: () => Promise<void>;
 }
 
-export function DashboardView({ checkIns, medications, setActiveTab, onRefresh }: DashboardViewProps) {
+export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTab, onRefresh }: DashboardViewProps) {
   const today = new Date();
   const todayCheckIn = checkIns.find((c: CheckIn) => isSameDay(parseISO(c.date), today));
+  const todayBehaviorLogs = behaviorLogs.filter((b: any) => b.timestamp && isSameDay(new Date(b.timestamp), today));
   
   const isMedTaken = (medId: string) => {
     const todayStr = format(today, 'yyyy-MM-dd');
@@ -34,7 +36,15 @@ export function DashboardView({ checkIns, medications, setActiveTab, onRefresh }
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
       <header className="mb-8">
-        <h2 className="text-2xl font-bold text-slate-900">Bom {format(today, 'a') === 'AM' ? 'dia' : 'tarde/noite'}</h2>
+        <h2 className="text-2xl font-bold text-slate-900">
+          {(() => {
+            const hour = today.getHours();
+            let greeting = 'boa noite';
+            if (hour >= 5 && hour < 12) greeting = 'bom dia';
+            else if (hour >= 12 && hour < 18) greeting = 'boa tarde';
+            return greeting.charAt(0).toUpperCase() + greeting.slice(1);
+          })()}
+        </h2>
         <p className="text-slate-500">{format(today, "EEEE, d 'de' MMMM", { locale: ptBR })}</p>
       </header>
 
@@ -111,14 +121,32 @@ export function DashboardView({ checkIns, medications, setActiveTab, onRefresh }
         </div>
 
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 md:col-span-2">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-              <h3 className="font-semibold text-slate-800">Rastreamento de Comportamento</h3>
-              <p className="text-sm text-slate-500">Registre eventos de desregulação, gatilhos ou crises para posterior análise.</p>
-            </div>
-            <button onClick={() => setActiveTab('behavior')} className="bg-slate-100 text-slate-700 px-6 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-200 transition-colors whitespace-nowrap w-full md:w-auto">
-              Novo Evento
-            </button>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-slate-800 flex items-center gap-2"><ClipboardList size={18} className="text-indigo-500"/> Eventos de Hoje</h3>
+          </div>
+          
+          <div className="space-y-3">
+            {todayBehaviorLogs.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">Nenhum evento registrado hoje.</p>
+            ) : (
+              todayBehaviorLogs.map((log: any) => (
+                <div key={log.id} className="p-4 rounded-2xl border border-slate-100 bg-slate-50">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-md mb-1">{log.eventType}</span>
+                      <p className="text-sm font-medium text-slate-800">{log.description || 'Sem descrição'}</p>
+                    </div>
+                    <span className="text-xs font-semibold text-rose-500 bg-rose-50 px-2 py-1 rounded-md">Intensidade: {log.intensity}/10</span>
+                  </div>
+                  {(log.perceivedTriggers?.length > 0 || log.copingStrategies?.length > 0) && (
+                    <div className="mt-3 text-xs flex flex-col gap-1 text-slate-500">
+                      {log.perceivedTriggers?.length > 0 && <p><span className="font-medium text-slate-700">Gatilhos:</span> {log.perceivedTriggers.join(', ')}</p>}
+                      {log.copingStrategies?.length > 0 && <p><span className="font-medium text-slate-700">Estratégias:</span> {log.copingStrategies.join(', ')}</p>}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

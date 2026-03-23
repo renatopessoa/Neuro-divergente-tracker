@@ -15,20 +15,22 @@ import { BehaviorView } from '@/components/BehaviorView';
 
 // Types & Actions
 import { CheckIn, Medication, Mood } from './types';
-import { getCheckIns, getMedications } from './actions';
+import { getCheckIns, getMedications, getBehaviorLogs } from './actions';
 
 export default function SymptomTrackerApp() {
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [medications, setMedications] = useState<Medication[]>([]);
+  const [behaviorLogs, setBehaviorLogs] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const loadData = async () => {
     try {
-      const [dbCheckIns, dbMeds] = await Promise.all([
+      const [dbCheckIns, dbMeds, dbBehaviorLogs] = await Promise.all([
         getCheckIns(),
-        getMedications()
+        getMedications(),
+        getBehaviorLogs()
       ]);
       
       const formattedCheckIns = dbCheckIns.map((c: any) => ({
@@ -39,6 +41,7 @@ export default function SymptomTrackerApp() {
 
       setCheckIns(formattedCheckIns);
       setMedications(dbMeds as any);
+      setBehaviorLogs(dbBehaviorLogs as any);
     } catch (e) {
       console.error('Falha ao carregar dados', e);
     } finally {
@@ -118,7 +121,7 @@ export default function SymptomTrackerApp() {
       {/* Main Content */}
       <main className="p-4 md:p-8 max-w-5xl mx-auto">
         <AnimatePresence mode="wait">
-          {activeTab === 'dashboard' && <DashboardView key="dashboard" checkIns={checkIns} medications={medications} setActiveTab={setActiveTab} onRefresh={loadData} />}
+          {activeTab === 'dashboard' && <DashboardView key="dashboard" checkIns={checkIns} medications={medications} behaviorLogs={behaviorLogs} setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'checkin' && <CheckInView key="checkin" setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'behavior' && <BehaviorView key="behavior" setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'meds' && <MedicationsView key="meds" medications={medications} onRefresh={loadData} />}
