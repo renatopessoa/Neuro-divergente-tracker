@@ -1,14 +1,14 @@
-import { prisma } from "./lib/prisma";
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
+
+const prisma = new PrismaClient();
 
 async function seed() {
   try {
-    // Verificando se o prisma está definido
-    if (!prisma) {
-      throw new Error("Prisma client not initialized");
-    }
-
     console.log("Iniciando seed...");
     
+    const passwordHash = await bcrypt.hash("senha_provisoria_123", 10);
+
     // @ts-ignore - Dependendo da versão o modelo pode ser 'user' ou 'User'
     const user = await prisma.user.upsert({
       where: { email: "admin@neurotracker.com" },
@@ -16,7 +16,7 @@ async function seed() {
       create: {
         name: "Admin NeuroTracker",
         email: "admin@neurotracker.com",
-        passwordHash: "senha_provisoria_123",
+        passwordHash: passwordHash,
         role: "ADMIN",
       },
     });
