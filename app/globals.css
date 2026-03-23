@@ -1,24 +1,22 @@
 @import "tailwindcss";
 
-@layer theme {
-  :root {
-    --font-sans: var(--font-figtree);
-    
-    /* Semantic Colors - Exposed to Tailwind */
-    --color-primary-50: var(--primary-50);
-    --color-primary-100: var(--primary-100);
-    --color-primary-200: var(--primary-200);
-    --color-primary-500: var(--primary-500);
-    --color-primary-600: var(--primary-600);
-    
-    --color-surface: var(--surface);
-    --color-surface-muted: var(--surface-muted);
-    
-    --color-text-main: var(--text-main);
-    --color-text-muted: var(--text-muted);
-    
-    --color-border-subtle: var(--border-subtle);
-  }
+@theme {
+  --font-sans: var(--font-figtree);
+  
+  /* Semantic Colors - Exposed to Tailwind */
+  --color-primary-50: var(--primary-50);
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  
+  --color-border-subtle: var(--border-subtle);
 }
 
 @layer base {

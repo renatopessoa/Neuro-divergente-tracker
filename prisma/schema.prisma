@@ -56,16 +56,33 @@ model MedLog {
 }
 
 model BehaviorLog {
-  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  timestamp         DateTime @default(now())
-  eventType         String
-  description       String?
-  perceivedTriggers String[]
-  intensity         Int
-  durationMinutes   Int?
-  copingStrategies  String[]
-  notes             String?
-  createdAt         DateTime @default(now())
-  userId            String   @db.Uuid
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String   @db.Uuid
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt             DateTime @default(now())
+
+  // 1. Contexto e Identificação
+  timestamp             DateTime @default(now())
+  location              String?
+  peoplePresent         String?
+
+  // 2. Antecedente (O Gatilho)
+  vulnerabilityFactors  String[]
+  perceivedTriggers     String[]
+
+  // 3. Topografia do Comportamento (A Crise)
+  eventType             String
+  description           String?
+  durationMinutes       Int?
+  intensity             Int
+
+  // 4. Consequência e Resposta
+  copingStrategies      String[]
+  efficacy              Int?
+  environmentReaction   String?
+
+  // 5. Notas Adicionais e Observações
+  warningSigns          String?
+  postCrisisState       String?
+  notes                 String?
 }

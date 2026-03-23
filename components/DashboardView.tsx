@@ -138,10 +138,11 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
                     </div>
                     <span className="text-xs font-semibold text-rose-500 bg-rose-50 px-2 py-1 rounded-md">Intensidade: {log.intensity}/10</span>
                   </div>
-                  {(log.perceivedTriggers?.length > 0 || log.copingStrategies?.length > 0) && (
+                  {(log.vulnerabilityFactors?.length > 0 || log.perceivedTriggers?.length > 0 || log.copingStrategies?.length > 0) && (
                     <div className="mt-3 text-xs flex flex-col gap-1 text-text-muted">
-                      {log.perceivedTriggers?.length > 0 && <p><span className="font-medium text-text-main">Gatilhos:</span> {log.perceivedTriggers.join(', ')}</p>}
-                      {log.copingStrategies?.length > 0 && <p><span className="font-medium text-text-main">Estratégias:</span> {log.copingStrategies.join(', ')}</p>}
+                      {log.vulnerabilityFactors?.length > 0 && <p><span className="font-medium text-text-main">Vulnerabilidades:</span> {log.vulnerabilityFactors.join(', ')}</p>}
+                      {log.perceivedTriggers?.length > 0 && <p><span className="font-medium text-text-main">Gatilhos Imediatos:</span> {log.perceivedTriggers.join(', ')}</p>}
+                      {log.copingStrategies?.length > 0 && <p><span className="font-medium text-text-main">Estratégia (Eficácia {log.efficacy ?? 'N/A'}/5):</span> {log.copingStrategies.join(', ')}</p>}
                     </div>
                   )}
                 </div>

@@ -1,42 +1,63 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { saveBehaviorLog } from '../app/actions';
+import { ArrowLeft, ArrowRight, Save, Clock, MapPin, Users, Brain, Activity, HeartHandshake, FileText } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface BehaviorViewProps {
   setActiveTab: (tab: string) => void;
   onRefresh: () => Promise<void>;
 }
 
-const COMMON_TRIGGERS = [
-  'Barulho alto', 'Multidão', 'Mudança de rotina', 'Falta de sono', 
-  'Pressão social', 'Luz intensa', 'Cheiros fortes', 'Fome/Fadiga', 
-  'Estresse', 'Sobrecarga sensorial'
-];
-
-const COMMON_STRATEGIES = [
-  'Respiração profunda', 'Isolamento temporário', 'Música', 
-  'Meditação', 'Conversa', 'Mudança de ambiente'
-];
+const COMMON_VULNERABILITIES = ['Fome', 'Sede', 'Sono inadequado', 'Fadiga', 'Dor/Desconforto físico', 'Excesso de demandas prévias'];
+const COMMON_TRIGGERS = ['Barulho alto', 'Multidão/Aglomeração', 'Mudança na rotina', 'Receber um "Não"', 'Transição de atividade', 'Luz intensa', 'Cheiros fortes', 'Sobrecarga sensorial'];
+const COMMON_STRATEGIES = ['Respiração profunda', 'Isolamento temporário', 'Abafo de ruído', 'Redirecionamento de atenção', 'Pressão profunda', 'Música', 'Contagem'];
 
 export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
+  const [step, setStep] = useState(1);
+  const totalSteps = 5;
+
+  // 1. Contexto
+  const [timestamp, setTimestamp] = useState(() => {
+    // Current local datetime string for input type="datetime-local" (YYYY-MM-DDTHH:mm)
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  });
+  const [location, setLocation] = useState('');
+  const [peoplePresent, setPeoplePresent] = useState('');
+
+  // 2. Antecedentes
+  const [vulnerabilityFactors, setVulnerabilityFactors] = useState<string[]>([]);
+  const [customVulnerability, setCustomVulnerability] = useState('');
+  const [perceivedTriggers, setPerceivedTriggers] = useState<string[]>([]);
+  const [customTrigger, setCustomTrigger] = useState('');
+
+  // 3. Comportamento
   const [eventType, setEventType] = useState('Desregulação');
   const [description, setDescription] = useState('');
-  const [selectedTriggers, setSelectedTriggers] = useState<string[]>([]);
-  const [customTrigger, setCustomTrigger] = useState('');
   const [intensity, setIntensity] = useState(5);
   const [duration, setDuration] = useState<number | ''>('');
-  const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
+
+  // 4. Consequência
+  const [copingStrategies, setCopingStrategies] = useState<string[]>([]);
   const [customStrategy, setCustomStrategy] = useState('');
+  const [efficacy, setEfficacy] = useState(3);
+  const [environmentReaction, setEnvironmentReaction] = useState('');
+
+  // 5. Pós-Crise e Notas
+  const [warningSigns, setWarningSigns] = useState('');
+  const [postCrisisState, setPostCrisisState] = useState('');
   const [notes, setNotes] = useState('');
 
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Helper Utils
   const toggleSelection = (item: string, list: string[], setList: (v: string[]) => void) => {
-    if (list.includes(item)) {
-      setList(list.filter(i => i !== item));
-    } else {
-      setList([...list, item]);
-    }
+    if (list.includes(item)) setList(list.filter(i => i !== item));
+    else setList([...list, item]);
   };
 
   const handleAddCustom = (value: string, setter: (v: string) => void, list: string[], setList: (v: string[]) => void) => {
@@ -47,176 +68,288 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
   };
 
   const handleSave = async () => {
+    setIsSaving(true);
     const newLog = {
+      timestamp: new Date(timestamp),
+      location,
+      peoplePresent,
+      vulnerabilityFactors,
+      perceivedTriggers,
       eventType,
       description,
-      perceivedTriggers: selectedTriggers,
       intensity,
       durationMinutes: duration === '' ? null : Number(duration),
-      copingStrategies: selectedStrategies,
+      copingStrategies,
+      efficacy,
+      environmentReaction,
+      warningSigns,
+      postCrisisState,
       notes,
     };
     
     await saveBehaviorLog(newLog);
     await onRefresh();
+    setIsSaving(false);
     setActiveTab('dashboard');
   };
 
+  const renderStepIndicator = () => (
+    <div className="flex justify-between items-center mb-6">
+      <div className="flex gap-2 w-full max-w-sm mx-auto">
+        {[1, 2, 3, 4, 5].map(s => (
+          <div key={s} className={`h-2 flex-1 rounded-full transition-all ${s <= step ? 'bg-primary-500' : 'bg-surface-muted border border-border-subtle'}`} />
+        ))}
+      </div>
+    </div>
+  );
+
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-2xl mx-auto space-y-8">
-      <header>
-        <h2 className="text-2xl font-bold text-slate-900">Registro de Comportamento</h2>
-        <p className="text-slate-500">Acompanhe desregulações, gatilhos e crises para ajudar a identificar padrões.</p>
+    <div className="max-w-2xl mx-auto space-y-6">
+      <header className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-text-main mb-2">Registro de Evento (A.B.C)</h2>
+        <p className="text-text-muted text-sm">Registre contexto, antecedentes e consequências para identificar padrões.</p>
       </header>
 
-      <div className="space-y-8 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100">
-        
-        <section>
-          <label className="block text-sm font-semibold text-slate-700 mb-4">Tipo de Evento</label>
-          <div className="flex flex-wrap gap-2">
-            {['Desregulação', 'Gatilho', 'Crise'].map((type) => (
-              <button
-                key={type}
-                onClick={() => setEventType(type)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors border ${eventType === type ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-        </section>
+      {renderStepIndicator()}
 
-        <section>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">Descrição do Evento</label>
-          <textarea 
-            placeholder="Descreva o que aconteceu e o contexto..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none min-h-[80px]"
-          />
-        </section>
+      <div className="bg-surface p-6 md:p-8 rounded-3xl shadow-sm border border-border-subtle overflow-hidden relative">
+        <AnimatePresence mode="wait">
+          
+          {step === 1 && (
+            <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Clock className="text-primary-500" size={20}/> 1. Contexto</h3>
+              
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Data e Hora exata</label>
+                <input 
+                  type="datetime-local" 
+                  value={timestamp}
+                  onChange={(e) => setTimestamp(e.target.value)}
+                  className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                />
+              </section>
+              
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2 flex items-center gap-1"><MapPin size={16}/> Local e Atividade</label>
+                <input 
+                  type="text" 
+                  placeholder="Ex: Sala de aula, durante a aula de matemática..."
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                />
+              </section>
 
-        <section>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">Gatilhos Percebidos</label>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {COMMON_TRIGGERS.map((trigger) => (
-              <button
-                key={trigger}
-                onClick={() => toggleSelection(trigger, selectedTriggers, setSelectedTriggers)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${selectedTriggers.includes(trigger) ? 'bg-rose-100 border-rose-200 text-rose-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}
-              >
-                {trigger}
-              </button>
-            ))}
-            {selectedTriggers.filter(t => !COMMON_TRIGGERS.includes(t)).map(custom => (
-                <button
-                key={custom}
-                onClick={() => toggleSelection(custom, selectedTriggers, setSelectedTriggers)}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border bg-rose-100 border-rose-200 text-rose-700"
-              >
-                {custom} ✕
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <input 
-              type="text"
-              placeholder="Outro gatilho..."
-              value={customTrigger}
-              onChange={(e) => setCustomTrigger(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddCustom(customTrigger, setCustomTrigger, selectedTriggers, setSelectedTriggers)}
-              className="flex-1 p-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2 flex items-center gap-1"><Users size={16}/> Pessoas Presentes</label>
+                <input 
+                  type="text" 
+                  placeholder="Ex: Mãe e irmão mais novo..."
+                  value={peoplePresent}
+                  onChange={(e) => setPeoplePresent(e.target.value)}
+                  className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                />
+              </section>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Brain className="text-primary-500" size={20}/> 2. Antecedentes A (Gatilhos)</h3>
+              
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Fatores de Vulnerabilidade (Fundo)</label>
+                <p className="text-xs text-text-muted mb-3">Condições internas que baixam a tolerância no dia de hoje.</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {COMMON_VULNERABILITIES.map((vul) => (
+                    <button type="button" key={vul} onClick={() => toggleSelection(vul, vulnerabilityFactors, setVulnerabilityFactors)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${vulnerabilityFactors.includes(vul) ? 'bg-amber-500 border-amber-600 text-white' : 'bg-surface-muted border-border-subtle text-text-muted hover:bg-border-subtle'}`}>
+                      {vul}
+                    </button>
+                  ))}
+                  {vulnerabilityFactors.filter(t => !COMMON_VULNERABILITIES.includes(t)).map(custom => (
+                    <button type="button" key={custom} onClick={() => toggleSelection(custom, vulnerabilityFactors, setVulnerabilityFactors)} className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-amber-500 border-amber-600 text-white">
+                      {custom} ✕
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input type="text" placeholder="Outra vulnerabilidade..." value={customVulnerability} onChange={(e) => setCustomVulnerability(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddCustom(customVulnerability, setCustomVulnerability, vulnerabilityFactors, setVulnerabilityFactors)} className="flex-1 p-2 text-sm bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none" />
+                  <button type="button" onClick={() => handleAddCustom(customVulnerability, setCustomVulnerability, vulnerabilityFactors, setVulnerabilityFactors)} className="px-4 py-2 bg-surface-muted text-text-main border border-border-subtle text-sm font-medium rounded-xl hover:bg-border-subtle transition-colors">Add</button>
+                </div>
+              </section>
+
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2 mt-6">Gatilhos Imediatos (Fator Externo)</label>
+                <p className="text-xs text-text-muted mb-3">O evento exato que iniciou a desregulação.</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {COMMON_TRIGGERS.map((trigger) => (
+                    <button type="button" key={trigger} onClick={() => toggleSelection(trigger, perceivedTriggers, setPerceivedTriggers)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${perceivedTriggers.includes(trigger) ? 'bg-rose-500 border-rose-600 text-white' : 'bg-surface-muted border-border-subtle text-text-muted hover:bg-border-subtle'}`}>
+                      {trigger}
+                    </button>
+                  ))}
+                  {perceivedTriggers.filter(t => !COMMON_TRIGGERS.includes(t)).map(custom => (
+                    <button type="button" key={custom} onClick={() => toggleSelection(custom, perceivedTriggers, setPerceivedTriggers)} className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-rose-500 border-rose-600 text-white">
+                      {custom} ✕
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input type="text" placeholder="Outro gatilho..." value={customTrigger} onChange={(e) => setCustomTrigger(e.target.value)} onKeyDown={(e) => { e.preventDefault(); e.key === 'Enter' && handleAddCustom(customTrigger, setCustomTrigger, perceivedTriggers, setPerceivedTriggers) }} className="flex-1 p-2 text-sm bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none" />
+                  <button type="button" onClick={() => handleAddCustom(customTrigger, setCustomTrigger, perceivedTriggers, setPerceivedTriggers)} className="px-4 py-2 bg-surface-muted text-text-main border border-border-subtle text-sm font-medium rounded-xl hover:bg-border-subtle transition-colors">Add</button>
+                </div>
+              </section>
+            </motion.div>
+          )}
+
+          {step === 3 && (
+            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Activity className="text-primary-500" size={20}/> 3. Comportamento B (A Crise)</h3>
+              
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Classificação do Evento</label>
+                <select value={eventType} onChange={(e) => setEventType(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none">
+                  <option value="Desregulação">Desregulação / Agitação</option>
+                  <option value="Crise (Meltdown)">Crise Externa (Meltdown)</option>
+                  <option value="Desligamento (Shutdown)">Desligamento (Shutdown)</option>
+                  <option value="Agressão/Autoagressão">Agressão / Autoagressão</option>
+                  <option value="Fuga/Esquiva">Fuga / Esquiva</option>
+                </select>
+              </section>
+
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Descrição Exata da Ação</label>
+                <p className="text-xs text-text-muted mb-3">Foqie apenas no que foi observado visualmente e auditivamente (Ex: "Gritou e atirou o objeto").</p>
+                <textarea placeholder="O que a pessoa fez efetivamente?" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[80px]" />
+              </section>
+
+              <div className="grid grid-cols-2 gap-4">
+                <section>
+                  <label className="block text-sm font-semibold text-text-muted mb-2 focus:ring-primary-500">Intensidade: {intensity}/10</label>
+                  <input type="range" min="1" max="10" value={intensity} onChange={(e) => setIntensity(parseInt(e.target.value))} className="w-full h-2 bg-surface-muted rounded-lg appearance-none cursor-pointer accent-rose-500" />
+                </section>
+                <section>
+                  <label className="block text-sm font-semibold text-text-muted mb-2">Duração (Minutos)</label>
+                  <input type="number" min="0" placeholder="Ex: 5" value={duration} onChange={(e) => setDuration(e.target.value === '' ? '' : parseInt(e.target.value))} className="w-full p-2 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none" />
+                </section>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 4 && (
+            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><HeartHandshake className="text-primary-500" size={20}/> 4. Consequência C (Reação)</h3>
+              
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Estratégias de Manejo Adotadas</label>
+                <p className="text-xs text-text-muted mb-3">O que você/cuidador fez quando a crise iniciou?</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {COMMON_STRATEGIES.map((strategy) => (
+                    <button type="button" key={strategy} onClick={() => toggleSelection(strategy, copingStrategies, setCopingStrategies)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${copingStrategies.includes(strategy) ? 'bg-sky-500 border-sky-600 text-white' : 'bg-surface-muted border-border-subtle text-text-muted hover:bg-border-subtle'}`}>
+                      {strategy}
+                    </button>
+                  ))}
+                  {copingStrategies.filter(t => !COMMON_STRATEGIES.includes(t)).map(custom => (
+                    <button type="button" key={custom} onClick={() => toggleSelection(custom, copingStrategies, setCopingStrategies)} className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-sky-500 border-sky-600 text-white">
+                      {custom} ✕
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input type="text" placeholder="Outra estratégia..." value={customStrategy} onChange={(e) => setCustomStrategy(e.target.value)} onKeyDown={(e) => { e.preventDefault(); e.key === 'Enter' && handleAddCustom(customStrategy, setCustomStrategy, copingStrategies, setCopingStrategies) }} className="flex-1 p-2 text-sm bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none" />
+                  <button type="button" onClick={() => handleAddCustom(customStrategy, setCustomStrategy, copingStrategies, setCopingStrategies)} className="px-4 py-2 bg-surface-muted border border-border-subtle text-text-main text-sm font-medium rounded-xl hover:bg-border-subtle transition-colors">Add</button>
+                </div>
+              </section>
+
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Eficácia da Estratégia Adotada</label>
+                <div className="flex flex-col gap-2">
+                  {[
+                    { val: 1, label: '1 - Piorou a crise severamente' },
+                    { val: 2, label: '2 - Não ajudou e escalou levemente' },
+                    { val: 3, label: '3 - Neutro / Nenhum efeito imediato' },
+                    { val: 4, label: '4 - Ajudou a acalmar razoavelmente' },
+                    { val: 5, label: '5 - Muito eficaz, resolveu e regulou a crise' }
+                  ].map(e => (
+                    <label key={e.val} className={`p-3 border rounded-xl flex items-center gap-3 cursor-pointer transition-colors ${efficacy === e.val ? 'bg-sky-500 border-sky-600 text-white' : 'bg-surface-muted border-border-subtle text-text-muted hover:bg-border-subtle'}`}>
+                      <input type="radio" name="efficacy" value={e.val} checked={efficacy === e.val} onChange={() => setEfficacy(e.val)} className="accent-primary-600 w-4 h-4 cursor-pointer" />
+                      <span className="text-sm font-medium">{e.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Reação do Ambiente</label>
+                <p className="text-xs text-text-muted mb-2">Ex: As pessoas cederam ao desejo? Ficaram assustadas? Brigaram?</p>
+                <textarea placeholder="O que aconteceu imediatamente após o comportamento?" value={environmentReaction} onChange={(e) => setEnvironmentReaction(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[60px]" />
+              </section>
+            </motion.div>
+          )}
+
+          {step === 5 && (
+            <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><FileText className="text-primary-500" size={20}/> 5. Observações Finais</h3>
+              
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Sinais Precursores (Aviso)</label>
+                <p className="text-xs text-text-muted mb-2">O que aconteceu logo antes que poderia nos avisar de que a crise viria? (Ex: agitação motora, roer unhas, ficar pálido, respiração ofegante)</p>
+                <textarea placeholder="Sinais físicos ou comportamentais percebidos antes do pico da crise..." value={warningSigns} onChange={(e) => setWarningSigns(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[60px]" />
+              </section>
+
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Estado Pós-Crise</label>
+                <p className="text-xs text-text-muted mb-2">Como a pessoa ficou após o final do evento? (Ex: Exausto, dormiu, choramingando, não falou nada)</p>
+                <input type="text" placeholder="Estado físico/mental subsequente..." value={postCrisisState} onChange={(e) => setPostCrisisState(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none" />
+              </section>
+
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Anotações Adicionais (Opcional)</label>
+                <textarea placeholder="Qualquer outra observação da perspectiva do observador..." value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[60px]" />
+              </section>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
+
+        <div className="flex justify-between items-center mt-8 pt-4 border-t border-border-subtle">
+          <button 
+            type="button"
+            onClick={() => {
+              if (step > 1) {
+                setStep(step - 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              } else {
+                setActiveTab('dashboard');
+              }
+            }} 
+            className="flex items-center gap-2 px-4 py-2 font-medium text-text-muted hover:text-text-main transition-colors"
+          >
+            <ArrowLeft size={18} /> {step === 1 ? 'Cancelar' : 'Voltar'}
+          </button>
+
+          {step < totalSteps ? (
             <button 
-              onClick={() => handleAddCustom(customTrigger, setCustomTrigger, selectedTriggers, setSelectedTriggers)}
-              className="px-4 py-2 bg-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-300 transition-colors"
+              type="button"
+              onClick={() => {
+                setStep(step + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity shadow-sm"
             >
-              Adicionar
+              Avançar <ArrowRight size={18} />
             </button>
-          </div>
-        </section>
-
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <div className="flex justify-between items-end mb-4">
-              <label className="block text-sm font-semibold text-slate-700">Intensidade</label>
-              <span className="text-sm font-medium text-rose-500">{intensity} / 10</span>
-            </div>
-            <input 
-              type="range" 
-              min="0" max="10" 
-              value={intensity} 
-              onChange={(e) => setIntensity(parseInt(e.target.value))}
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Duração (minutos)</label>
-            <input 
-              type="number" 
-              min="0"
-              placeholder="Opcional"
-              value={duration} 
-              onChange={(e) => setDuration(e.target.value === '' ? '' : parseInt(e.target.value))}
-              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
-          </div>
-        </section>
-
-        <section>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">Estratégias de Regulação Utilizadas</label>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {COMMON_STRATEGIES.map((strategy) => (
-              <button
-                key={strategy}
-                onClick={() => toggleSelection(strategy, selectedStrategies, setSelectedStrategies)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${selectedStrategies.includes(strategy) ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}
-              >
-                {strategy}
-              </button>
-            ))}
-             {selectedStrategies.filter(t => !COMMON_STRATEGIES.includes(t)).map(custom => (
-                <button
-                key={custom}
-                onClick={() => toggleSelection(custom, selectedStrategies, setSelectedStrategies)}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border bg-emerald-100 border-emerald-200 text-emerald-700"
-              >
-                {custom} ✕
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <input 
-              type="text"
-              placeholder="Outra estratégia..."
-              value={customStrategy}
-              onChange={(e) => setCustomStrategy(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddCustom(customStrategy, setCustomStrategy, selectedStrategies, setSelectedStrategies)}
-              className="flex-1 p-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
+          ) : (
             <button 
-              onClick={() => handleAddCustom(customStrategy, setCustomStrategy, selectedStrategies, setSelectedStrategies)}
-              className="px-4 py-2 bg-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-300 transition-colors"
+              type="button"
+              onClick={handleSave} 
+              disabled={isSaving}
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
             >
-              Adicionar
+              {isSaving ? 'Salvando...' : 'Salvar Registro Completo'} <Save size={18} />
             </button>
-          </div>
-        </section>
-
-        <section>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">Notas Adicionais</label>
-          <textarea 
-            placeholder="Qualquer outra observação importante..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none min-h-[80px]"
-          />
-        </section>
-
-        <button onClick={handleSave} className="w-full bg-indigo-600 text-white py-4 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
-          Salvar Registro
-        </button>
+          )}
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

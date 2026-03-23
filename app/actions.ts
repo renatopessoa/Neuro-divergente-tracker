@@ -144,9 +144,12 @@ export async function saveBehaviorLog(data: any) {
   const userId = await getUserId();
   if (!userId) throw new Error('Acesso não autorizado');
 
+  const { timestamp, ...rest } = data;
+
   await prisma.behaviorLog.create({
     data: {
-      ...data,
+      ...rest,
+      timestamp: timestamp ? new Date(timestamp) : new Date(),
       userId,
     },
   });
@@ -176,7 +179,7 @@ export async function generateHealthInsights(checkIns: any[]) {
   ).join('\n');
 
   const behaviorString = behaviorLogs.slice(0, 14).map(b =>
-    `Evento: ${b.eventType}, Gatilhos Percebidos: ${b.perceivedTriggers.join(', ')}, Intensidade: ${b.intensity}/10, Duração: ${b.durationMinutes} min, Estratégias: ${b.copingStrategies.join(', ')}, Notas: ${b.notes}`
+    `Data: ${format(new Date(b.timestamp), "dd/MM HH:mm")}, Evento: ${b.eventType}, Contexto: ${b.location || 'N/A'} (Pessoas: ${b.peoplePresent || 'N/A'}), Gatilhos (Vulnerabilidade: ${b.vulnerabilityFactors?.join(', ')} | Imediatos: ${b.perceivedTriggers?.join(', ')}), Comportamento (Crise: ${b.description || 'N/A'}, Intensidade: ${b.intensity}/10, Duração: ${b.durationMinutes || 0} min), Consequência (Manejo: ${b.copingStrategies?.join(', ')}, Eficácia: ${b.efficacy || 'N/A'}/5, Ambiente: ${b.environmentReaction || 'N/A'}), Sinais: ${b.warningSigns || 'N/A'}, Pós-Crise: ${b.postCrisisState || 'N/A'}, Notas: ${b.notes || ''}`
   ).join('\n');
 
   const prompt = `
