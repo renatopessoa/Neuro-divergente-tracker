@@ -33,20 +33,32 @@ export function ReportsView({ checkIns }: ReportsViewProps) {
   const averagePain = (chartData.reduce((acc, curr) => acc + curr.pain, 0) / chartData.length) || 0;
   const averageSleep = (chartData.reduce((acc, curr) => acc + curr.sleep, 0) / chartData.length) || 0;
 
+  // Calcula o sintoma mais comum
+  const symptomCounts: Record<string, number> = {};
+  checkIns.forEach(c => {
+    c.symptoms.forEach(s => {
+      if (s) {
+        symptomCounts[s] = (symptomCounts[s] || 0) + 1;
+      }
+    });
+  });
+
+  const mostCommonSymptom = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Nenhum sintoma';
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-4xl mx-auto space-y-8">
-      <header className="flex justify-between items-end">
+      <header className="flex justify-between items-end print:hidden">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Relatórios de Saúde</h2>
           <p className="text-slate-500">Visão Geral de 14 Dias para o seu Médico</p>
         </div>
-        <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg">
+        <button onClick={() => window.print()} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg">
           Exportar PDF
         </button>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 print:break-inside-avoid">
           <h3 className="font-semibold text-slate-800 mb-6">Tendências de Dor vs Humor</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -66,7 +78,7 @@ export function ReportsView({ checkIns }: ReportsViewProps) {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 print:break-inside-avoid">
           <h3 className="font-semibold text-slate-800 mb-6">Duração do Sono</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -85,7 +97,7 @@ export function ReportsView({ checkIns }: ReportsViewProps) {
         </div>
       </div>
 
-      <div className="bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-lg">
+      <div className="bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-lg print:break-inside-avoid">
         <h3 className="font-semibold text-slate-200 mb-6">Resumo de 14 Dias</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
@@ -102,7 +114,7 @@ export function ReportsView({ checkIns }: ReportsViewProps) {
           </div>
           <div>
             <p className="text-slate-400 text-sm mb-1">Sintoma Mais Comum</p>
-            <p className="text-xl font-medium mt-2">Dor de cabeça</p>
+            <p className="text-xl font-medium mt-2 capitalize">{mostCommonSymptom}</p>
           </div>
         </div>
       </div>
