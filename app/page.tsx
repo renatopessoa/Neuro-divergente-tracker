@@ -53,12 +53,12 @@ export default function SymptomTrackerApp() {
     if (session) loadData();
   }, [session]);
 
-  if (!isLoaded) return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500">Carregando...</div>;
+  if (!isLoaded) return <div className="min-h-screen flex items-center justify-center bg-surface text-text-muted">Carregando...</div>;
 
   const NavItem = ({ icon, label, tab }: { icon: any, label: string, tab: string }) => (
     <button 
       onClick={() => setActiveTab(tab)} 
-      className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-colors ${activeTab === tab ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+      className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-colors ${activeTab === tab ? 'text-primary-600' : 'text-text-muted hover:text-text-main'}`}
     >
       {icon}
       <span className="text-[10px] font-medium">{label}</span>
@@ -68,7 +68,7 @@ export default function SymptomTrackerApp() {
   const SidebarItem = ({ icon, label, tab, onClick, className }: any) => (
     <button 
       onClick={onClick || (() => setActiveTab(tab))} 
-      className={className || `flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-sm font-medium ${activeTab === tab ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+      className={className || `flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-sm font-medium ${activeTab === tab ? 'bg-primary-50 text-primary-600' : 'text-text-muted hover:bg-surface-muted hover:text-text-main'}`}
     >
       {icon}
       {label}
@@ -76,9 +76,9 @@ export default function SymptomTrackerApp() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-20 md:pb-0 md:pl-64">
+    <div className="min-h-screen bg-surface-muted text-text-main font-sans pb-20 md:pb-0 md:pl-64">
       {/* Mobile Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-3 md:hidden z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border-subtle flex justify-around p-3 md:hidden z-50">
         <NavItem icon={<Activity />} label="Início" tab="dashboard" />
         <NavItem icon={<Plus />} label="Check-in" tab="checkin" />
         <NavItem icon={<ClipboardList />} label="Eventos" tab="behavior" />
@@ -88,12 +88,12 @@ export default function SymptomTrackerApp() {
       </nav>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 fixed top-0 bottom-0 left-0 bg-white border-r border-slate-200 p-4 z-50">
+      <aside className="hidden md:flex flex-col w-64 fixed top-0 bottom-0 left-0 bg-surface border-r border-border-subtle p-4 z-50">
         <div className="flex items-center gap-2 mb-8 px-2">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
+          <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white">
             <Activity size={20} />
           </div>
-          <h1 className="font-bold text-lg tracking-tight text-slate-800">NeuroTracker</h1>
+          <h1 className="font-bold text-lg tracking-tight text-text-main">NeuroTracker</h1>
         </div>
         <nav className="flex flex-col gap-2 flex-1">
           <SidebarItem icon={<Activity />} label="Início" tab="dashboard" />
@@ -104,10 +104,10 @@ export default function SymptomTrackerApp() {
           <SidebarItem icon={<LineChart />} label="Relatórios" tab="reports" />
         </nav>
 
-        <div className="border-t border-slate-100 pt-4 mt-auto">
+        <div className="border-t border-border-subtle pt-4 mt-auto">
           <div className="px-4 mb-4">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Usuário</p>
-            <p className="text-sm font-medium text-slate-700 truncate">{session?.user?.name || 'Admin'}</p>
+            <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">Usuário</p>
+            <p className="text-sm font-medium text-text-main truncate">{session?.user?.name || 'Admin'}</p>
           </div>
           <SidebarItem 
             icon={<LogOut size={18} />} 
