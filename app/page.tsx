@@ -183,7 +183,7 @@ export default function SymptomTrackerApp() {
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
             <Activity size={20} />
           </div>
-          <h1 className="font-bold text-lg tracking-tight text-slate-800">SymptomSync</h1>
+          <h1 className="font-bold text-lg tracking-tight text-slate-800">My Tracking</h1>
         </div>
         <nav className="flex flex-col gap-2">
           <SidebarItem icon={<Activity />} label="Início" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />

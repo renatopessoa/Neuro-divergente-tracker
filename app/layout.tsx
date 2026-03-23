@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css'; // Global styles
 
 export const metadata: Metadata = {
-  title: 'My Google AI Studio App',
+  title: 'My tracking app',
   description: 'My Google AI Studio App',
 };
 
