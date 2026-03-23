@@ -1,0 +1,121 @@
+'use client';
+
+import { useState } from 'react';
+import { motion } from 'motion/react';
+import { BrainCircuit, AlertCircle, MessageSquare } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale/pt-BR';
+import { GoogleGenAI } from '@google/genai';
+import { CheckIn } from '../app/types';
+
+interface InsightsViewProps {
+  checkIns: CheckIn[];
+}
+
+export function InsightsView({ checkIns }: InsightsViewProps) {
+  const [insights, setInsights] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const generateInsights = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || '' });
+      
+      const dataString = checkIns.slice(0, 14).map(c => 
+        `Data: ${format(parseISO(c.date), "dd 'de' MMM", { locale: ptBR })}, Humor: ${c.mood}/5, Dor: ${c.painLevel}/10, Sono: ${c.sleepHours}h (Qualidade: ${c.sleepQuality}/5), Dieta: ${c.dietNotes}, Sintomas: ${c.symptoms.join(', ')}`
+      ).join('\n');
+
+      const prompt = `
+        Você é um assistente de saúde de IA empático e profissional analisando o diário de sintomas de um paciente nos últimos 14 dias.
+        Analise os seguintes dados e forneça:
+        1. Um resumo breve e encorajador do bem-estar geral.
+        2. 2-3 possíveis padrões ou gatilhos que você notar (ex: "Em dias com menos de 6 horas de sono, seus níveis de dor tendem a ser maiores").
+        3. 1-2 recomendações práticas e gentis para cuidados paliativos ou bem-estar mental (ex: reformulação de pensamentos baseada em TCC, higiene do sono).
+        
+        Mantenha o tom de apoio, clínico, mas acolhedor. Não use cabeçalhos markdown, apenas parágrafos claros.
+        Responda em Português do Brasil.
+        
+        Dados:
+        ${dataString}
+      `;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: prompt,
+      });
+
+      setInsights(response.text || 'Nenhum insight gerado.');
+    } catch (err: any) {
+      console.error(err);
+      setError('Falha ao gerar insights. Verifique sua chave de API ou tente novamente mais tarde.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-3xl mx-auto space-y-6">
+      <header>
+        <h2 className="text-2xl font-bold text-slate-900">Insights de Saúde com IA</h2>
+        <p className="text-slate-500">Descubra padrões e gatilhos em seus registros diários</p>
+      </header>
+
+      <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100">
+        <div className="flex items-start gap-4 mb-6">
+          <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+            <BrainCircuit size={24} />
+          </div>
+          <div>
+            <h3 className="font-semibold text-slate-800 text-lg">Análise de Padrões</h3>
+            <p className="text-sm text-slate-500">Nossa IA analisa seus check-ins recentes para encontrar correlações entre seu estilo de vida e sintomas.</p>
+          </div>
+        </div>
+
+        {!insights && !loading && (
+          <button onClick={generateInsights} className="w-full bg-indigo-50 text-indigo-700 py-4 rounded-xl font-medium hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2">
+            <BrainCircuit size={18} /> Gerar Insights
+          </button>
+        )}
+
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <p className="text-sm text-slate-500 animate-pulse">Analisando seus dados de saúde...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="p-4 bg-rose-50 text-rose-700 rounded-xl text-sm flex items-start gap-2">
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <p>{error}</p>
+          </div>
+        )}
+
+        {insights && !loading && (
+          <div className="space-y-6">
+            <div className="prose prose-slate prose-sm max-w-none">
+              {insights.split('\n\n').map((paragraph, i) => (
+                <p key={i} className="text-slate-700 leading-relaxed">{paragraph}</p>
+              ))}
+            </div>
+            <button onClick={generateInsights} className="text-sm text-indigo-600 font-medium hover:text-indigo-700">
+              Atualizar Análise
+            </button>
+          </div>
+        )}
+      </div>
+      
+      <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 flex gap-4 items-start">
+        <MessageSquare className="text-emerald-600 shrink-0 mt-1" size={24} />
+        <div>
+           <h4 className="font-semibold text-emerald-900 mb-1">Apoio à Saúde Mental</h4>
+           <p className="text-sm text-emerald-800 leading-relaxed">
+             Lembre-se de que esses insights são para acompanhamento e autoconhecimento. Eles não substituem o aconselhamento médico profissional. Se você estiver se sentindo sobrecarregado, procure um profissional de saúde.
+           </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
