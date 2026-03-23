@@ -12,9 +12,10 @@ interface DashboardViewProps {
   checkIns: CheckIn[];
   medications: Medication[];
   setActiveTab: (tab: string) => void;
+  onRefresh: () => Promise<void>;
 }
 
-export function DashboardView({ checkIns, medications, setActiveTab }: DashboardViewProps) {
+export function DashboardView({ checkIns, medications, setActiveTab, onRefresh }: DashboardViewProps) {
   const today = new Date();
   const todayCheckIn = checkIns.find((c: CheckIn) => isSameDay(parseISO(c.date), today));
   
@@ -27,7 +28,7 @@ export function DashboardView({ checkIns, medications, setActiveTab }: Dashboard
   const handleMedToggle = async (medId: string) => {
     const taken = !isMedTaken(medId);
     await toggleMedLog(medId, taken);
-    window.location.reload();
+    await onRefresh();
   };
 
   return (

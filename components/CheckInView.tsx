@@ -9,9 +9,10 @@ import { saveCheckIn } from '../app/actions';
 
 interface CheckInViewProps {
   setActiveTab: (tab: string) => void;
+  onRefresh: () => Promise<void>;
 }
 
-export function CheckInView({ setActiveTab }: CheckInViewProps) {
+export function CheckInView({ setActiveTab, onRefresh }: CheckInViewProps) {
   const [mood, setMood] = useState<number>(3);
   const [pain, setPain] = useState<number>(0);
   const [sleepHours, setSleepHours] = useState<number>(7);
@@ -33,8 +34,8 @@ export function CheckInView({ setActiveTab }: CheckInViewProps) {
     };
     
     await saveCheckIn(newCheckIn);
+    await onRefresh();
     setActiveTab('dashboard');
-    window.location.reload();
   };
 
   return (

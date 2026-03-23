@@ -23,28 +23,29 @@ export default function SymptomTrackerApp() {
   const [medications, setMedications] = useState<Medication[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [dbCheckIns, dbMeds] = await Promise.all([
-          getCheckIns(),
-          getMedications()
-        ]);
-        
-        const formattedCheckIns = dbCheckIns.map((c: any) => ({
-          ...c,
-          date: c.date.toISOString(),
-          mood: c.mood as Mood
-        }));
+  const loadData = async () => {
+    try {
+      const [dbCheckIns, dbMeds] = await Promise.all([
+        getCheckIns(),
+        getMedications()
+      ]);
+      
+      const formattedCheckIns = dbCheckIns.map((c: any) => ({
+        ...c,
+        date: c.date.toISOString(),
+        mood: c.mood as Mood
+      }));
 
-        setCheckIns(formattedCheckIns);
-        setMedications(dbMeds as any);
-      } catch (e) {
-        console.error('Falha ao carregar dados da VPS', e);
-      } finally {
-        setIsLoaded(true);
-      }
+      setCheckIns(formattedCheckIns);
+      setMedications(dbMeds as any);
+    } catch (e) {
+      console.error('Falha ao carregar dados', e);
+    } finally {
+      setIsLoaded(true);
     }
+  };
+
+  useEffect(() => {
     if (session) loadData();
   }, [session]);
 
@@ -114,9 +115,9 @@ export default function SymptomTrackerApp() {
       {/* Main Content */}
       <main className="p-4 md:p-8 max-w-5xl mx-auto">
         <AnimatePresence mode="wait">
-          {activeTab === 'dashboard' && <DashboardView key="dashboard" checkIns={checkIns} medications={medications} setActiveTab={setActiveTab} />}
-          {activeTab === 'checkin' && <CheckInView key="checkin" setActiveTab={setActiveTab} />}
-          {activeTab === 'meds' && <MedicationsView key="meds" medications={medications} />}
+          {activeTab === 'dashboard' && <DashboardView key="dashboard" checkIns={checkIns} medications={medications} setActiveTab={setActiveTab} onRefresh={loadData} />}
+          {activeTab === 'checkin' && <CheckInView key="checkin" setActiveTab={setActiveTab} onRefresh={loadData} />}
+          {activeTab === 'meds' && <MedicationsView key="meds" medications={medications} onRefresh={loadData} />}
           {activeTab === 'insights' && <InsightsView key="insights" checkIns={checkIns} />}
           {activeTab === 'reports' && <ReportsView key="reports" checkIns={checkIns} />}
         </AnimatePresence>

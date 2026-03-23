@@ -8,9 +8,10 @@ import { addMedication, deleteMedication } from '../app/actions';
 
 interface MedicationsViewProps {
   medications: Medication[];
+  onRefresh: () => Promise<void>;
 }
 
-export function MedicationsView({ medications }: MedicationsViewProps) {
+export function MedicationsView({ medications, onRefresh }: MedicationsViewProps) {
   const [showAdd, setShowAdd] = useState(false);
   const [newMed, setNewMed] = useState({ name: '', dosage: '', frequency: '', time: '' });
 
@@ -19,13 +20,13 @@ export function MedicationsView({ medications }: MedicationsViewProps) {
       await addMedication(newMed);
       setNewMed({ name: '', dosage: '', frequency: '', time: '' });
       setShowAdd(false);
-      window.location.reload();
+      await onRefresh();
     }
   };
 
   const handleDeleteClick = async (id: string) => {
     await deleteMedication(id);
-    window.location.reload();
+    await onRefresh();
   };
 
   return (
