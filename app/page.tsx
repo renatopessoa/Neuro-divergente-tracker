@@ -116,53 +116,43 @@ const MoodIcon = ({ mood, className, size }: { mood: number, className?: string,
   }
 };
 
+import { getCheckIns, saveCheckIn, getMedications, addMedication, toggleMedLog, deleteMedication } from './actions';
+
+// ... (Mood, CheckIn, Medication, MedLog types permanecem iguais)
+
 export default function SymptomTrackerApp() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'checkin' | 'meds' | 'insights' | 'reports'>('dashboard');
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
-  const [medications, setMedications] = useState<Medication[]>(initialMeds);
-  const [medLogs, setMedLogs] = useState<MedLog[]>([]);
+  const [medications, setMedications] = useState<Medication[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Load data from local storage or use mock
-    const loadData = () => {
+    async function loadData() {
       try {
-        const savedCheckIns = localStorage.getItem('checkIns');
-        if (savedCheckIns) {
-          setCheckIns(JSON.parse(savedCheckIns));
-        } else {
-          const mock = generateMockData();
-          setCheckIns(mock);
-          localStorage.setItem('checkIns', JSON.stringify(mock));
-        }
+        const [dbCheckIns, dbMeds] = await Promise.all([
+          getCheckIns(),
+          getMedications()
+        ]);
+        
+        // Converte as datas de string para ISO se necessário
+        const formattedCheckIns = dbCheckIns.map(c => ({
+          ...c,
+          date: c.date.toISOString(),
+          mood: c.mood as Mood
+        }));
 
-        const savedMeds = localStorage.getItem('medications');
-        if (savedMeds) setMedications(JSON.parse(savedMeds));
-
-        const savedLogs = localStorage.getItem('medLogs');
-        if (savedLogs) setMedLogs(JSON.parse(savedLogs));
+        setCheckIns(formattedCheckIns);
+        setMedications(dbMeds);
       } catch (e) {
-        console.error('Failed to access localStorage', e);
-        setCheckIns(generateMockData());
+        console.error('Falha ao carregar dados da VPS', e);
       } finally {
         setIsLoaded(true);
       }
-    };
-    
-    setTimeout(loadData, 0);
+    }
+    loadData();
   }, []);
 
-  useEffect(() => {
-    if (isLoaded) {
-      try {
-        localStorage.setItem('checkIns', JSON.stringify(checkIns));
-        localStorage.setItem('medications', JSON.stringify(medications));
-        localStorage.setItem('medLogs', JSON.stringify(medLogs));
-      } catch (e) {
-        console.error('Failed to write to localStorage', e);
-      }
-    }
-  }, [checkIns, medications, medLogs, isLoaded]);
+  // Removido useEffect que salvava no localStorage
 
   if (!isLoaded) return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500">Carregando...</div>;
 
@@ -225,27 +215,20 @@ const SidebarItem = ({ icon, label, active, onClick }: { icon: React.ReactNode, 
 
 // --- Views ---
 
-function DashboardView({ checkIns, medications, medLogs, setMedLogs, setActiveTab }: any) {
+function DashboardView({ checkIns, medications, setActiveTab }: any) {
   const today = new Date();
   const todayCheckIn = checkIns.find((c: CheckIn) => isSameDay(parseISO(c.date), today));
   
-  const handleMedToggle = (medId: string) => {
-    const todayStr = format(today, 'yyyy-MM-dd');
-    const existingLogIndex = medLogs.findIndex((l: MedLog) => l.medId === medId && l.date.startsWith(todayStr));
-    
-    if (existingLogIndex >= 0) {
-      const newLogs = [...medLogs];
-      newLogs[existingLogIndex].taken = !newLogs[existingLogIndex].taken;
-      setMedLogs(newLogs);
-    } else {
-      const newId = Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
-      setMedLogs([...medLogs, { id: newId, medId, date: today.toISOString(), taken: true }]);
-    }
+  const handleMedToggle = async (medId: string) => {
+    const taken = !isMedTaken(medId);
+    await toggleMedLog(medId, taken);
+    window.location.reload(); // Simplificado para atualizar os dados
   };
 
   const isMedTaken = (medId: string) => {
     const todayStr = format(today, 'yyyy-MM-dd');
-    return medLogs.some((l: MedLog) => l.medId === medId && l.date.startsWith(todayStr) && l.taken);
+    const med = medications.find((m: any) => m.id === medId);
+    return med?.logs?.some((l: any) => format(new Date(l.date), 'yyyy-MM-dd') === todayStr);
   };
 
   return (
@@ -342,9 +325,8 @@ function CheckInView({ checkIns, setCheckIns, setActiveTab }: any) {
   const [symptoms, setSymptoms] = useState<string>('');
   const [generalNotes, setGeneralNotes] = useState('');
 
-  const handleSave = () => {
-    const newCheckIn: CheckIn = {
-      id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36),
+  const handleSave = async () => {
+    const newCheckIn = {
       date: new Date().toISOString(),
       mood: mood as Mood,
       painLevel: pain,
@@ -355,12 +337,9 @@ function CheckInView({ checkIns, setCheckIns, setActiveTab }: any) {
       generalNotes
     };
     
-    // Remove existing check-in for today if it exists
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const filtered = checkIns.filter((c: CheckIn) => !c.date.startsWith(todayStr));
-    
-    setCheckIns([newCheckIn, ...filtered]);
+    await saveCheckIn(newCheckIn);
     setActiveTab('dashboard');
+    window.location.reload();
   };
 
   return (
@@ -469,20 +448,22 @@ function CheckInView({ checkIns, setCheckIns, setActiveTab }: any) {
   );
 }
 
-function MedicationsView({ medications, setMedications }: any) {
+function MedicationsView({ medications }: any) {
   const [showAdd, setShowAdd] = useState(false);
   const [newMed, setNewMed] = useState({ name: '', dosage: '', frequency: '', time: '' });
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (newMed.name) {
-      setMedications([...medications, { ...newMed, id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36) }]);
+      await addMedication(newMed);
       setNewMed({ name: '', dosage: '', frequency: '', time: '' });
       setShowAdd(false);
+      window.location.reload();
     }
   };
 
-  const handleDelete = (id: string) => {
-    setMedications(medications.filter((m: Medication) => m.id !== id));
+  const handleDeleteClick = async (id: string) => {
+    await deleteMedication(id);
+    window.location.reload();
   };
 
   return (
@@ -528,7 +509,7 @@ function MedicationsView({ medications, setMedications }: any) {
                 <p className="text-sm text-slate-500">{med.dosage} • {med.frequency} às {med.time}</p>
               </div>
             </div>
-            <button onClick={() => handleDelete(med.id)} className="text-slate-400 hover:text-rose-500 p-2 transition-colors">
+            <button onClick={() => handleDeleteClick(med.id)} className="text-slate-400 hover:text-rose-500 p-2 transition-colors">
               <X size={20} />
             </button>
           </div>
