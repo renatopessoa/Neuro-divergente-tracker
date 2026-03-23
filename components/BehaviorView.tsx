@@ -106,7 +106,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <header className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-text-main mb-2">Registro de Evento (A.B.C)</h2>
+        <h2 className="text-2xl font-bold text-text-main mb-2">Registro de Evento</h2>
         <p className="text-text-muted text-sm">Registre contexto, antecedentes e consequências para identificar padrões.</p>
       </header>
 
@@ -155,7 +155,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Brain className="text-primary-500" size={20}/> 2. Antecedentes A (Gatilhos)</h3>
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Brain className="text-primary-500" size={20}/> 2. Antecedentes (Gatilhos)</h3>
               
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Fatores de Vulnerabilidade (Fundo)</label>
@@ -203,7 +203,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Activity className="text-primary-500" size={20}/> 3. Comportamento B (A Crise)</h3>
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Activity className="text-primary-500" size={20}/> 3. Comportamento (A Crise)</h3>
               
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Classificação do Evento</label>
@@ -237,7 +237,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
           {step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><HeartHandshake className="text-primary-500" size={20}/> 4. Consequência C (Reação)</h3>
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><HeartHandshake className="text-primary-500" size={20}/> 4. Consequência (Reação)</h3>
               
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Estratégias de Manejo Adotadas</label>
