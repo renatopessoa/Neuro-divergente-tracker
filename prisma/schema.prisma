@@ -8,51 +8,48 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String
-  email         String    @unique
-  passwordHash  String
-  role          String    @default("ADMIN")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  checkIns      CheckIn[]
-  medications   Medication[]
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  email        String       @unique
+  passwordHash String
+  role         String       @default("ADMIN")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  checkIns     CheckIn[]
+  medications  Medication[]
 }
 
 model CheckIn {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   date         DateTime @default(now())
-  mood         Int      // 1-5
-  painLevel    Int      // 0-10
+  mood         Int
+  painLevel    Int
   sleepHours   Float
-  sleepQuality Int      // 1-5
-  dietNotes    String?  @db.Text
+  sleepQuality Int
+  dietNotes    String?
   symptoms     String[]
-  generalNotes String?  @db.Text
+  generalNotes String?
   createdAt    DateTime @default(now())
-  
   userId       String   @db.Uuid
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Medication {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name         String
-  dosage       String
-  frequency    String
-  time         String   // HH:mm
-  createdAt    DateTime @default(now())
-  
-  userId       String   @db.Uuid
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  logs         MedLog[]
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  dosage    String
+  frequency String
+  time      String
+  createdAt DateTime @default(now())
+  userId    String   @db.Uuid
+  logs      MedLog[]
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model MedLog {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  date         DateTime @default(now())
-  taken        Boolean  @default(true)
-  
-  medId        String   @db.Uuid
-  medication   Medication @relation(fields: [medId], references: [id], onDelete: Cascade)
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  date       DateTime   @default(now())
+  taken      Boolean    @default(true)
+  medId      String     @db.Uuid
+  medication Medication @relation(fields: [medId], references: [id], onDelete: Cascade)
 }

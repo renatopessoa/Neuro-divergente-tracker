@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import bcrypt from 'bcrypt';
 
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./api/auth/[...nextauth]/route";
@@ -9,6 +10,35 @@ import { authOptions } from "./api/auth/[...nextauth]/route";
 async function getUserId() {
   const session = await getServerSession(authOptions);
   return (session?.user as any)?.id;
+}
+
+export async function registerUser(data: any) {
+  const { name, email, password } = data;
+
+  if (!name || !email || !password) {
+    throw new Error('Todos os campos são obrigatórios');
+  }
+
+  const existingUser = await (prisma as any).user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    throw new Error('E-mail já cadastrado');
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  await (prisma as any).user.create({
+    data: {
+      name,
+      email,
+      passwordHash,
+      role: 'ADMIN', // Defaulting to ADMIN as per schema default but explicit here if needed
+    },
+  });
+
+  return { success: true };
 }
 
 export async function getCheckIns() {
