@@ -128,6 +128,32 @@ export async function deleteMedication(id: string) {
   revalidatePath('/');
 }
 
+// --- Behavior Logs Actions ---
+
+export async function getBehaviorLogs() {
+  const userId = await getUserId();
+  if (!userId) return [];
+  
+  return await prisma.behaviorLog.findMany({
+    where: { userId },
+    orderBy: { timestamp: 'desc' },
+  });
+}
+
+export async function saveBehaviorLog(data: any) {
+  const userId = await getUserId();
+  if (!userId) throw new Error('Acesso não autorizado');
+
+  await prisma.behaviorLog.create({
+    data: {
+      ...data,
+      userId,
+    },
+  });
+
+  revalidatePath('/');
+}
+
 import { GoogleGenAI } from '@google/genai';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
@@ -137,29 +163,40 @@ export async function generateHealthInsights(checkIns: any[]) {
   if (!userId) throw new Error('Acesso não autorizado');
 
   // Uses server-side GEMINI_API_KEY environment variable securely
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+  const apiKey = process.env.GEMINI_API_KEY || '';
   if (!apiKey) {
     throw new Error('Chave de API não configurada.');
   }
 
   const ai = new GoogleGenAI({ apiKey });
   
+  const behaviorLogs = await getBehaviorLogs();
+  
   const dataString = checkIns.slice(0, 14).map(c => 
     `Data: ${format(parseISO(c.date), "dd 'de' MMM", { locale: ptBR })}, Humor: ${c.mood}/5, Dor: ${c.painLevel}/10, Sono: ${c.sleepHours}h (Qualidade: ${c.sleepQuality}/5), Dieta: ${c.dietNotes}, Sintomas: ${c.symptoms.join(', ')}`
   ).join('\n');
 
+  const behaviorString = behaviorLogs.slice(0, 14).map(b =>
+    `Evento: ${b.eventType}, Gatilhos Percebidos: ${b.perceivedTriggers.join(', ')}, Intensidade: ${b.intensity}/10, Duração: ${b.durationMinutes} min, Estratégias: ${b.copingStrategies.join(', ')}, Notas: ${b.notes}`
+  ).join('\n');
+
   const prompt = `
-    Você é um assistente de saúde de IA empático e profissional analisando o diário de sintomas de um paciente nos últimos 14 dias.
+    Você é um assistente de saúde de IA empático e profissional analisando o diário de sintomas de um paciente nos últimos 14 dias, incluindo os registros diários e eventos de comportamento/desregulação.
     Analise os seguintes dados e forneça:
     1. Um resumo breve e encorajador do bem-estar geral.
-    2. 2-3 possíveis padrões ou gatilhos que você notar (ex: "Em dias com menos de 6 horas de sono, seus níveis de dor tendem a ser maiores").
-    3. 1-2 recomendações práticas e gentis para cuidados paliativos ou bem-estar mental (ex: reformulação de pensamentos baseada em TCC, higiene do sono).
+    2. Padrões e Gatilhos: Destaque correlações entre eventos diários (sono, dieta, sintomas) e os eventos de desregulação/crise, como "Barulho alto frequentemente leva a desregulação" ou "Falta de sono correlaciona com maior intensidade de crises".
+    3. Estratégias Eficazes: Identifique quais estratégias de regulação parecem ser mais eficazes para o usuário.
+    4. Recomendações práticas e gentis para cuidados e prevenção de futuras crises.
+    5. Um aviso de que os insights não substituem o aconselhamento médico profissional.
     
-    Mantenha o tom de apoio, clínico, mas acolhedor. Não use cabeçalhos markdown, apenas parágrafos claros.
+    Mantenha o tom de apoio, clínico, mas acolhedor. Não use cabeçalhos markdown, apenas parágrafos claros ou marcadores quando necessário.
     Responda em Português do Brasil.
     
-    Dados:
+    Dados de Check-ins (Últimos 14 dias):
     ${dataString}
+    
+    Dados de Rastreamento de Comportamento e Desregulação (últimos 14 dias):
+    ${behaviorString || 'Nenhum evento registrado.'}
   `;
 
   const response = await ai.models.generateContent({

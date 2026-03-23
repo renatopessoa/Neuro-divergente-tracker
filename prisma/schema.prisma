@@ -17,6 +17,7 @@ model User {
   updatedAt    DateTime     @updatedAt
   checkIns     CheckIn[]
   medications  Medication[]
+  behaviorLogs BehaviorLog[]
 }
 
 model CheckIn {
@@ -52,4 +53,19 @@ model MedLog {
   taken      Boolean    @default(true)
   medId      String     @db.Uuid
   medication Medication @relation(fields: [medId], references: [id], onDelete: Cascade)
+}
+
+model BehaviorLog {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  timestamp         DateTime @default(now())
+  eventType         String
+  description       String?
+  perceivedTriggers String[]
+  intensity         Int
+  durationMinutes   Int?
+  copingStrategies  String[]
+  notes             String?
+  createdAt         DateTime @default(now())
+  userId            String   @db.Uuid
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

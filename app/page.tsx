@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { Activity, Plus, Pill, BrainCircuit, LineChart, LogOut } from 'lucide-react';
+import { Activity, Plus, Pill, BrainCircuit, LineChart, LogOut, ClipboardList } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
 // Components
@@ -11,6 +11,7 @@ import { CheckInView } from '@/components/CheckInView';
 import { MedicationsView } from '@/components/MedicationsView';
 import { InsightsView } from '@/components/InsightsView';
 import { ReportsView } from '@/components/ReportsView';
+import { BehaviorView } from '@/components/BehaviorView';
 
 // Types & Actions
 import { CheckIn, Medication, Mood } from './types';
@@ -77,6 +78,7 @@ export default function SymptomTrackerApp() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-3 md:hidden z-50">
         <NavItem icon={<Activity />} label="Início" tab="dashboard" />
         <NavItem icon={<Plus />} label="Check-in" tab="checkin" />
+        <NavItem icon={<ClipboardList />} label="Eventos" tab="behavior" />
         <NavItem icon={<Pill />} label="Remédios" tab="meds" />
         <NavItem icon={<BrainCircuit />} label="Insights" tab="insights" />
         <NavItem icon={<LineChart />} label="Relatórios" tab="reports" />
@@ -93,6 +95,7 @@ export default function SymptomTrackerApp() {
         <nav className="flex flex-col gap-2 flex-1">
           <SidebarItem icon={<Activity />} label="Início" tab="dashboard" />
           <SidebarItem icon={<Plus />} label="Check-in Diário" tab="checkin" />
+          <SidebarItem icon={<ClipboardList />} label="Registro de Eventos" tab="behavior" />
           <SidebarItem icon={<Pill />} label="Medicamentos" tab="meds" />
           <SidebarItem icon={<BrainCircuit />} label="Insights com IA" tab="insights" />
           <SidebarItem icon={<LineChart />} label="Relatórios" tab="reports" />
@@ -117,6 +120,7 @@ export default function SymptomTrackerApp() {
         <AnimatePresence mode="wait">
           {activeTab === 'dashboard' && <DashboardView key="dashboard" checkIns={checkIns} medications={medications} setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'checkin' && <CheckInView key="checkin" setActiveTab={setActiveTab} onRefresh={loadData} />}
+          {activeTab === 'behavior' && <BehaviorView key="behavior" setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'meds' && <MedicationsView key="meds" medications={medications} onRefresh={loadData} />}
           {activeTab === 'insights' && <InsightsView key="insights" checkIns={checkIns} />}
           {activeTab === 'reports' && <ReportsView key="reports" checkIns={checkIns} />}

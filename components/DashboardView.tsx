@@ -109,6 +109,18 @@ export function DashboardView({ checkIns, medications, setActiveTab, onRefresh }
             )}
           </div>
         </div>
+
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 md:col-span-2">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+              <h3 className="font-semibold text-slate-800">Rastreamento de Comportamento</h3>
+              <p className="text-sm text-slate-500">Registre eventos de desregulação, gatilhos ou crises para posterior análise.</p>
+            </div>
+            <button onClick={() => setActiveTab('behavior')} className="bg-slate-100 text-slate-700 px-6 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-200 transition-colors whitespace-nowrap w-full md:w-auto">
+              Novo Evento
+            </button>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
