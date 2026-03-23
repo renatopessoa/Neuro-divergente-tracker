@@ -127,3 +127,45 @@ export async function deleteMedication(id: string) {
   });
   revalidatePath('/');
 }
+
+import { GoogleGenAI } from '@google/genai';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale/pt-BR';
+
+export async function generateHealthInsights(checkIns: any[]) {
+  const userId = await getUserId();
+  if (!userId) throw new Error('Acesso não autorizado');
+
+  // Uses server-side GEMINI_API_KEY environment variable securely
+  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+  if (!apiKey) {
+    throw new Error('Chave de API não configurada.');
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+  
+  const dataString = checkIns.slice(0, 14).map(c => 
+    `Data: ${format(parseISO(c.date), "dd 'de' MMM", { locale: ptBR })}, Humor: ${c.mood}/5, Dor: ${c.painLevel}/10, Sono: ${c.sleepHours}h (Qualidade: ${c.sleepQuality}/5), Dieta: ${c.dietNotes}, Sintomas: ${c.symptoms.join(', ')}`
+  ).join('\n');
+
+  const prompt = `
+    Você é um assistente de saúde de IA empático e profissional analisando o diário de sintomas de um paciente nos últimos 14 dias.
+    Analise os seguintes dados e forneça:
+    1. Um resumo breve e encorajador do bem-estar geral.
+    2. 2-3 possíveis padrões ou gatilhos que você notar (ex: "Em dias com menos de 6 horas de sono, seus níveis de dor tendem a ser maiores").
+    3. 1-2 recomendações práticas e gentis para cuidados paliativos ou bem-estar mental (ex: reformulação de pensamentos baseada em TCC, higiene do sono).
+    
+    Mantenha o tom de apoio, clínico, mas acolhedor. Não use cabeçalhos markdown, apenas parágrafos claros.
+    Responda em Português do Brasil.
+    
+    Dados:
+    ${dataString}
+  `;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-1.5-flash",
+    contents: prompt,
+  });
+
+  return response.text;
+}
