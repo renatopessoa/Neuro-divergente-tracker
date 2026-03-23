@@ -1,13 +1,10 @@
-import { prisma } from "./lib/prisma";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+
+const prisma = new PrismaClient();
 
 async function seed() {
   try {
-    // Verificando se o prisma está definido
-    if (!prisma) {
-      throw new Error("Prisma client not initialized");
-    }
-
     console.log("Iniciando seed...");
     
     const passwordHash = await bcrypt.hash("senha_provisoria_123", 10);
