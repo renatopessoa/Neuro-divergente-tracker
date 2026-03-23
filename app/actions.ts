@@ -154,7 +154,7 @@ export async function saveBehaviorLog(data: any) {
   revalidatePath('/');
 }
 
-import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 
@@ -162,13 +162,12 @@ export async function generateHealthInsights(checkIns: any[]) {
   const userId = await getUserId();
   if (!userId) throw new Error('Acesso não autorizado');
 
-  // Uses server-side GEMINI_API_KEY environment variable securely
-  const apiKey = process.env.GEMINI_API_KEY || '';
+  const apiKey = process.env.OPENAI_API_KEY || '';
   if (!apiKey) {
-    throw new Error('Chave de API não configurada.');
+    throw new Error('Chave de API do OpenAI não configurada.');
   }
 
-  const ai = new GoogleGenAI({ apiKey });
+  const openai = new OpenAI({ apiKey });
   
   const behaviorLogs = await getBehaviorLogs();
   
@@ -199,10 +198,14 @@ export async function generateHealthInsights(checkIns: any[]) {
     ${behaviorString || 'Nenhum evento registrado.'}
   `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-1.5-flash",
-    contents: prompt,
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: "Você é um assistente de saúde IA especialista em dados de diários de pacientes com perfis neurodivergentes." },
+      { role: "user", content: prompt }
+    ],
+    temperature: 0.7,
   });
 
-  return response.text;
+  return response.choices[0]?.message?.content || "Houve um erro ao processar os insights.";
 }
