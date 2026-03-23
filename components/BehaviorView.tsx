@@ -133,7 +133,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
                 <label className="block text-sm font-semibold text-text-muted mb-2 flex items-center gap-1"><MapPin size={16}/> Local e Atividade</label>
                 <input 
                   type="text" 
-                  placeholder="Ex: Sala de aula, durante a aula de matemática..."
+                  placeholder=""
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -144,7 +144,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
                 <label className="block text-sm font-semibold text-text-muted mb-2 flex items-center gap-1"><Users size={16}/> Pessoas Presentes</label>
                 <input 
                   type="text" 
-                  placeholder="Ex: Mãe e irmão mais novo..."
+                  placeholder=""
                   value={peoplePresent}
                   onChange={(e) => setPeoplePresent(e.target.value)}
                   className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -218,7 +218,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Descrição Exata da Ação</label>
-                <p className="text-xs text-text-muted mb-3">Foqie apenas no que foi observado visualmente e auditivamente (Ex: "Gritou e atirou o objeto").</p>
+                <p className="text-xs text-text-muted mb-3">Foque apenas no que foi observado visualmente e auditivamente (Ex: "Gritou e atirou o objeto").</p>
                 <textarea placeholder="O que a pessoa fez efetivamente?" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[80px]" />
               </section>
 
