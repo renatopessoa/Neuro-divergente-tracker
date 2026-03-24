@@ -19,7 +19,7 @@ export async function registerUser(data: any) {
     throw new Error('Todos os campos são obrigatórios');
   }
 
-  const existingUser = await (prisma as any).user.findUnique({
+  const existingUser = await prisma.user.findUnique({
     where: { email },
   });
 
@@ -29,12 +29,12 @@ export async function registerUser(data: any) {
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  await (prisma as any).user.create({
+  await prisma.user.create({
     data: {
       name,
       email,
       passwordHash,
-      role: 'ADMIN', // Defaulting to ADMIN as per schema default but explicit here if needed
+      role: 'ADMIN',
     },
   });
 
@@ -46,7 +46,7 @@ export async function getCheckIns() {
   if (!userId) return [];
   
   return await prisma.checkIn.findMany({
-    where: { userId },
+    where: { userId: userId },
     orderBy: { date: 'desc' },
   });
 }
@@ -55,14 +55,14 @@ export async function saveCheckIn(data: any) {
   const userId = await getUserId();
   if (!userId) throw new Error('Acesso não autorizado');
 
-  const { id, ...rest } = data;
-  const dateObj = new Date(rest.date);
+  const { id, date, ...rest } = data;
+  const dateObj = date ? new Date(date) : new Date();
 
   await prisma.checkIn.create({
     data: {
       ...rest,
       date: dateObj,
-      userId,
+      userid: userId,
     },
   });
 
@@ -137,7 +137,6 @@ export async function getBehaviorLogs() {
   return await prisma.behaviorLog.findMany({
     where: { userId },
     orderBy: { timestamp: 'desc' },
-    select: { id: true, userId: true, timestamp: true },
   });
 }
 
@@ -178,7 +177,7 @@ export async function saveBehaviorLog(data: any) {
 }
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 
 export async function generateHealthInsights(checkIns: any[]) {
@@ -199,7 +198,7 @@ export async function generateHealthInsights(checkIns: any[]) {
   const behaviorLogs = await getBehaviorLogs();
   
   const dataString = checkIns.slice(0, 14).map(c => 
-    `Data: ${format(parseISO(c.date), "dd 'de' MMM", { locale: ptBR })}, Humor: ${c.mood}/5, Dor: ${c.painLevel}/10, Sono: ${c.sleepHours}h (Qualidade: ${c.sleepQuality}/5), Dieta: ${c.dietNotes}, Sintomas: ${c.symptoms.join(', ')}`
+    `Data: ${format(new Date(c.date), "dd 'de' MMM", { locale: ptBR })}, Humor: ${c.mood}/5, Dor: ${c.painLevel}/10, Sono: ${c.sleepHours}h (Qualidade: ${c.sleepQuality}/5), Dieta: ${c.dietNotes}, Sintomas: ${c.symptoms.join(', ')}`
   ).join('\n');
 
   const behaviorString = behaviorLogs.slice(0, 14).map(b =>
