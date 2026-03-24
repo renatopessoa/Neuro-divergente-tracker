@@ -96,10 +96,16 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
       notes,
     };
 
-    await saveBehaviorLog(newLog);
-    await onRefresh();
-    setIsSaving(false);
-    setActiveTab('dashboard');
+    try {
+      await saveBehaviorLog(newLog);
+      await onRefresh();
+      setIsSaving(false);
+      setActiveTab('dashboard');
+    } catch (error: any) {
+      console.error("Erro ao salvar:", error);
+      alert("Erro ao salvar registro: " + error.message);
+      setIsSaving(false);
+    }
   };
 
   const renderStepIndicator = () => (

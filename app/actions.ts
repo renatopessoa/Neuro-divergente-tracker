@@ -146,15 +146,30 @@ export async function saveBehaviorLog(data: any) {
 
   const { timestamp, ...rest } = data;
 
-  await prisma.behaviorLog.create({
-    data: {
-      ...rest,
-      timestamp: timestamp ? new Date(timestamp) : new Date(),
-      userId,
-    },
-  });
+  try {
+    console.log("Tentando salvar BehaviorLog para o usuário:", userId);
+    console.log("Dados recebidos:", JSON.stringify(rest, null, 2));
 
-  revalidatePath('/');
+    const result = await prisma.behaviorLog.create({
+      data: {
+        ...rest,
+        timestamp: timestamp ? new Date(timestamp) : new Date(),
+        userId,
+      },
+    });
+
+    console.log("BehaviorLog salvo com sucesso:", result.id);
+    revalidatePath('/');
+    return { success: true, id: result.id };
+  } catch (error: any) {
+    console.error("ERRO CRÍTICO ao salvar BehaviorLog:", error);
+    // Log detalhado do erro do Prisma
+    if (error.code) {
+      console.error("Prisma Error Code:", error.code);
+      console.error("Prisma Error Meta:", error.meta);
+    }
+    throw new Error(`Erro ao salvar registro: ${error.message}`);
+  }
 }
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
