@@ -97,13 +97,21 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
     };
 
     try {
-      await saveBehaviorLog(newLog);
+      const response = await saveBehaviorLog(newLog);
+      
+      if (response && 'error' in response) {
+        console.error("Erro no Servidor:", response.error);
+        alert(`Erro ao salvar: ${response.error}\nCódigo: ${response.code || 'N/A'}`);
+        setIsSaving(false);
+        return;
+      }
+
       await onRefresh();
       setIsSaving(false);
       setActiveTab('dashboard');
     } catch (error: any) {
-      console.error("Erro ao salvar:", error);
-      alert("Erro ao salvar registro: " + error.message);
+      console.error("Erro no Cliente:", error);
+      alert("Erro crítico na aplicação: " + (error.message || "Erro desconhecido"));
       setIsSaving(false);
     }
   };

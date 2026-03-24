@@ -141,34 +141,38 @@ export async function getBehaviorLogs() {
 }
 
 export async function saveBehaviorLog(data: any) {
-  const userId = await getUserId();
-  if (!userId) throw new Error('Acesso não autorizado');
-
-  const { timestamp, ...rest } = data;
-
   try {
-    console.log("Tentando salvar BehaviorLog para o usuário:", userId);
-    console.log("Dados recebidos:", JSON.stringify(rest, null, 2));
+    const userId = await getUserId();
+    if (!userId) return { error: 'Acesso não autorizado: Sessão expirada ou usuário não logado.' };
+
+    const { timestamp, ...rest } = data;
+    
+    // Limpeza de dados para evitar erros de campos nulos ou tipos errados
+    const cleanData = {
+      ...rest,
+      timestamp: timestamp ? new Date(timestamp) : new Date(),
+      userId,
+      // Garantir que campos opcionais novos tenham valores padrão se vazios
+      preCrisisArousal: rest.preCrisisArousal || 5,
+      sensorOverloadTypes: Array.isArray(rest.sensorOverloadTypes) ? rest.sensorOverloadTypes : [],
+      executiveFunctionImpact: Array.isArray(rest.executiveFunctionImpact) ? rest.executiveFunctionImpact : [],
+      neurotypicalTranslation: rest.neurotypicalTranslation || "",
+    };
 
     const result = await prisma.behaviorLog.create({
-      data: {
-        ...rest,
-        timestamp: timestamp ? new Date(timestamp) : new Date(),
-        userId,
-      },
+      data: cleanData,
     });
 
-    console.log("BehaviorLog salvo com sucesso:", result.id);
     revalidatePath('/');
     return { success: true, id: result.id };
   } catch (error: any) {
-    console.error("ERRO CRÍTICO ao salvar BehaviorLog:", error);
-    // Log detalhado do erro do Prisma
-    if (error.code) {
-      console.error("Prisma Error Code:", error.code);
-      console.error("Prisma Error Meta:", error.meta);
-    }
-    throw new Error(`Erro ao salvar registro: ${error.message}`);
+    console.error("ERRO NO SERVIDOR:", error);
+    // Retornamos o erro como um objeto em vez de dar 'throw', para o Next.js não ocultar em produção
+    return { 
+      error: `Falha no Servidor: ${error.message}`, 
+      code: error.code,
+      meta: error.meta 
+    };
   }
 }
 
