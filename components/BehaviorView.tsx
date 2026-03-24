@@ -14,6 +14,8 @@ interface BehaviorViewProps {
 const COMMON_VULNERABILITIES = ['Fome', 'Sede', 'Sono inadequado', 'Fadiga', 'Dor/Desconforto físico', 'Excesso de demandas prévias'];
 const COMMON_TRIGGERS = ['Barulho alto', 'Multidão/Aglomeração', 'Mudança na rotina', 'Receber um "Não"', 'Transição de atividade', 'Luz intensa', 'Cheiros fortes', 'Sobrecarga sensorial'];
 const COMMON_STRATEGIES = ['Respiração profunda', 'Isolamento temporário', 'Abafo de ruído', 'Redirecionamento de atenção', 'Pressão profunda', 'Música', 'Contagem'];
+const SENSORY_OVERLOAD_TYPES = ['Visual', 'Auditiva', 'Tátil', 'Olfativa', 'Proprioceptiva', 'Vestibular', 'Gustativa'];
+const EXECUTIVE_FUNCTION_IMPACTS = ['Iniciação de tarefas', 'Memória de trabalho', 'Foco/Atenção', 'Organização', 'Planejamento', 'Flexibilidade mental'];
 
 export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
   const [step, setStep] = useState(1);
@@ -21,19 +23,20 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
   // 1. Contexto
   const [timestamp, setTimestamp] = useState(() => {
-    // Current local datetime string for input type="datetime-local" (YYYY-MM-DDTHH:mm)
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     return now.toISOString().slice(0, 16);
   });
   const [location, setLocation] = useState('');
   const [peoplePresent, setPeoplePresent] = useState('');
+  const [preCrisisArousal, setPreCrisisArousal] = useState(5);
 
   // 2. Antecedentes
   const [vulnerabilityFactors, setVulnerabilityFactors] = useState<string[]>([]);
   const [customVulnerability, setCustomVulnerability] = useState('');
   const [perceivedTriggers, setPerceivedTriggers] = useState<string[]>([]);
   const [customTrigger, setCustomTrigger] = useState('');
+  const [sensorOverloadTypes, setSensorOverloadTypes] = useState<string[]>([]);
 
   // 3. Comportamento
   const [eventType, setEventType] = useState('Desregulação');
@@ -46,11 +49,13 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
   const [customStrategy, setCustomStrategy] = useState('');
   const [efficacy, setEfficacy] = useState(3);
   const [environmentReaction, setEnvironmentReaction] = useState('');
+  const [neurotypicalTranslation, setNeurotypicalTranslation] = useState('');
 
   // 5. Pós-Crise e Notas
   const [warningSigns, setWarningSigns] = useState('');
   const [postCrisisState, setPostCrisisState] = useState('');
   const [notes, setNotes] = useState('');
+  const [executiveFunctionImpact, setExecutiveFunctionImpact] = useState<string[]>([]);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -73,8 +78,10 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
       timestamp: new Date(timestamp),
       location,
       peoplePresent,
+      preCrisisArousal,
       vulnerabilityFactors,
       perceivedTriggers,
+      sensorOverloadTypes,
       eventType,
       description,
       intensity,
@@ -82,6 +89,8 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
       copingStrategies,
       efficacy,
       environmentReaction,
+      neurotypicalTranslation,
+      executiveFunctionImpact,
       warningSigns,
       postCrisisState,
       notes,
@@ -150,6 +159,19 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
                   className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none"
                 />
               </section>
+
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Nível de Alerta Pré-Evento: {preCrisisArousal}/10</label>
+                <p className="text-xs text-text-muted mb-3">Como você estava antes do evento? (1=Muito letárgico, 10=Muito hiperativo)</p>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="10" 
+                  value={preCrisisArousal} 
+                  onChange={(e) => setPreCrisisArousal(parseInt(e.target.value))} 
+                  className="w-full h-2 bg-surface-muted rounded-lg appearance-none cursor-pointer accent-primary-500" 
+                />
+              </section>
             </motion.div>
           )}
 
@@ -164,11 +186,6 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
                   {COMMON_VULNERABILITIES.map((vul) => (
                     <button type="button" key={vul} onClick={() => toggleSelection(vul, vulnerabilityFactors, setVulnerabilityFactors)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${vulnerabilityFactors.includes(vul) ? 'bg-amber-500 border-amber-600 text-white' : 'bg-surface-muted border-border-subtle text-text-muted hover:bg-border-subtle'}`}>
                       {vul}
-                    </button>
-                  ))}
-                  {vulnerabilityFactors.filter(t => !COMMON_VULNERABILITIES.includes(t)).map(custom => (
-                    <button type="button" key={custom} onClick={() => toggleSelection(custom, vulnerabilityFactors, setVulnerabilityFactors)} className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-amber-500 border-amber-600 text-white">
-                      {custom} ✕
                     </button>
                   ))}
                 </div>
@@ -187,15 +204,31 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
                       {trigger}
                     </button>
                   ))}
-                  {perceivedTriggers.filter(t => !COMMON_TRIGGERS.includes(t)).map(custom => (
-                    <button type="button" key={custom} onClick={() => toggleSelection(custom, perceivedTriggers, setPerceivedTriggers)} className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-rose-500 border-rose-600 text-white">
-                      {custom} ✕
-                    </button>
-                  ))}
                 </div>
                 <div className="flex gap-2">
                   <input type="text" placeholder="Outro gatilho..." value={customTrigger} onChange={(e) => setCustomTrigger(e.target.value)} onKeyDown={(e) => { e.preventDefault(); e.key === 'Enter' && handleAddCustom(customTrigger, setCustomTrigger, perceivedTriggers, setPerceivedTriggers) }} className="flex-1 p-2 text-sm bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none" />
                   <button type="button" onClick={() => handleAddCustom(customTrigger, setCustomTrigger, perceivedTriggers, setPerceivedTriggers)} className="px-4 py-2 bg-surface-muted text-text-main border border-border-subtle text-sm font-medium rounded-xl hover:bg-border-subtle transition-colors">Add</button>
+                </div>
+              </section>
+
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2 mt-6">Tipo de Sobrecarga Sensorial</label>
+                <p className="text-xs text-text-muted mb-3">Qual tipo de sensação foi predominante?</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {SENSORY_OVERLOAD_TYPES.map((type) => (
+                    <button 
+                      type="button" 
+                      key={type} 
+                      onClick={() => toggleSelection(type, sensorOverloadTypes, setSensorOverloadTypes)} 
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                        sensorOverloadTypes.includes(type) 
+                          ? 'bg-purple-500 border-purple-600 text-white' 
+                          : 'bg-surface-muted border-border-subtle text-text-muted hover:bg-border-subtle'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
                 </div>
               </section>
             </motion.div>
@@ -218,7 +251,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Descrição Exata da Ação</label>
-                <p className="text-xs text-text-muted mb-3">Foque apenas no que foi observado visualmente e auditivamente (Ex: &quot;Gritou e atirou o objeto&quot;).</p>
+                <p className="text-xs text-text-muted mb-3">Foque apenas no que foi observado visualmente e auditivamente (Ex: "Gritou e atirou o objeto").</p>
                 <textarea placeholder="O que a pessoa fez efetivamente?" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[80px]" />
               </section>
 
@@ -246,11 +279,6 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
                   {COMMON_STRATEGIES.map((strategy) => (
                     <button type="button" key={strategy} onClick={() => toggleSelection(strategy, copingStrategies, setCopingStrategies)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${copingStrategies.includes(strategy) ? 'bg-sky-500 border-sky-600 text-white' : 'bg-surface-muted border-border-subtle text-text-muted hover:bg-border-subtle'}`}>
                       {strategy}
-                    </button>
-                  ))}
-                  {copingStrategies.filter(t => !COMMON_STRATEGIES.includes(t)).map(custom => (
-                    <button type="button" key={custom} onClick={() => toggleSelection(custom, copingStrategies, setCopingStrategies)} className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-sky-500 border-sky-600 text-white">
-                      {custom} ✕
                     </button>
                   ))}
                 </div>
@@ -283,6 +311,18 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
                 <p className="text-xs text-text-muted mb-2">Ex: As pessoas cederam ao desejo? Ficaram assustadas? Brigaram?</p>
                 <textarea placeholder="O que aconteceu imediatamente após o comportamento?" value={environmentReaction} onChange={(e) => setEnvironmentReaction(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[60px]" />
               </section>
+
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2 mt-6">Tradução Simultânea</label>
+                <p className="text-xs text-text-muted mb-2">Como você explicaria este evento para um neurotípico ou no contexto corporativo?</p>
+                <p className="text-xs text-text-muted mb-3 italic">Ex: "Tive uma sobrecarga sensorial" → "Não consegui processar múltiplos estímulos ao mesmo tempo, então precisei de um tempo sozinho para recuperar a capacidade de concentração."</p>
+                <textarea 
+                  placeholder="Tradução para linguagem neurotípica..." 
+                  value={neurotypicalTranslation} 
+                  onChange={(e) => setNeurotypicalTranslation(e.target.value)} 
+                  className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[80px]" 
+                />
+              </section>
             </motion.div>
           )}
 
@@ -300,6 +340,27 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
                 <label className="block text-sm font-semibold text-text-muted mb-2">Estado Pós-Crise</label>
                 <p className="text-xs text-text-muted mb-2">Como a pessoa ficou após o final do evento? (Ex: Exausto, dormiu, choramingando, não falou nada)</p>
                 <input type="text" placeholder="Estado físico/mental subsequente..." value={postCrisisState} onChange={(e) => setPostCrisisState(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none" />
+              </section>
+
+              <section>
+                <label className="block text-sm font-semibold text-text-muted mb-2">Impacto em Funções Executivas</label>
+                <p className="text-xs text-text-muted mb-3">O evento afetou sua capacidade de executar funções cognitivas?</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {EXECUTIVE_FUNCTION_IMPACTS.map((impact) => (
+                    <button 
+                      type="button" 
+                      key={impact} 
+                      onClick={() => toggleSelection(impact, executiveFunctionImpact, setExecutiveFunctionImpact)} 
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                        executiveFunctionImpact.includes(impact) 
+                          ? 'bg-green-500 border-green-600 text-white' 
+                          : 'bg-surface-muted border-border-subtle text-text-muted hover:bg-border-subtle'
+                      }`}
+                    >
+                      {impact}
+                    </button>
+                  ))}
+                </div>
               </section>
 
               <section>

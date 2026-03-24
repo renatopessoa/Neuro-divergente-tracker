@@ -64,10 +64,16 @@ model BehaviorLog {
   timestamp             DateTime @default(now())
   location              String?
   peoplePresent         String?
+  
+  // NOVO: Nível de Alerta Pré-Evento
+  preCrisisArousal      Int?     // Escala 1-10: 1=Muito baixo/letárgico, 10=Muito alto/hiperativo
 
   // 2. Antecedente (O Gatilho)
   vulnerabilityFactors  String[]
   perceivedTriggers     String[]
+  
+  // NOVO: Tipo de Sobrecarga Sensorial
+  sensorOverloadTypes   String[] // Ex: ["Visual", "Auditiva", "Tátil", "Olfativa", "Proprioceptiva", "Vestibular"]
 
   // 3. Topografia do Comportamento (A Crise)
   eventType             String
@@ -79,6 +85,12 @@ model BehaviorLog {
   copingStrategies      String[]
   efficacy              Int?
   environmentReaction   String?
+  
+  // NOVO: Tradução Simultânea (como explicar para um neurotípico)
+  neurotypicalTranslation String? // Ex: "Tive uma sobrecarga sensorial" → "Não consegui processar múltiplos estímulos ao mesmo tempo"
+  
+  // NOVO: Impacto em Funções Executivas
+  executiveFunctionImpact String[] // Ex: ["Iniciação de tarefas", "Memória de trabalho", "Foco/Atenção", "Organização"]
 
   // 5. Notas Adicionais e Observações
   warningSigns          String?

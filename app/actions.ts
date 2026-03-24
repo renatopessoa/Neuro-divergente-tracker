@@ -180,7 +180,19 @@ export async function generateHealthInsights(checkIns: any[]) {
   ).join('\n');
 
   const behaviorString = behaviorLogs.slice(0, 14).map(b =>
-    `Data: ${format(new Date(b.timestamp), "dd/MM HH:mm")}, Evento: ${b.eventType}, Contexto: ${b.location || 'N/A'} (Pessoas: ${b.peoplePresent || 'N/A'}), Gatilhos (Vulnerabilidade: ${b.vulnerabilityFactors?.join(', ')} | Imediatos: ${b.perceivedTriggers?.join(', ')}), Comportamento (Crise: ${b.description || 'N/A'}, Intensidade: ${b.intensity}/10, Duração: ${b.durationMinutes || 0} min), Consequência (Manejo: ${b.copingStrategies?.join(', ')}, Eficácia: ${b.efficacy || 'N/A'}/5, Ambiente: ${b.environmentReaction || 'N/A'}), Sinais: ${b.warningSigns || 'N/A'}, Pós-Crise: ${b.postCrisisState || 'N/A'}, Notas: ${b.notes || ''}`
+    `Data: ${format(new Date(b.timestamp), "dd/MM HH:mm")}, 
+     Evento: ${b.eventType}, 
+     Contexto: ${b.location || 'N/A'} (Pessoas: ${b.peoplePresent || 'N/A'}), 
+     Alerta Pré-Evento: ${b.preCrisisArousal || 'N/A'}/10,
+     Sobrecarga Sensorial: ${b.sensorOverloadTypes?.join(', ') || 'N/A'},
+     Gatilhos (Vulnerabilidade: ${b.vulnerabilityFactors?.join(', ')} | Imediatos: ${b.perceivedTriggers?.join(', ')}), 
+     Comportamento (Crise: ${b.description || 'N/A'}, Intensidade: ${b.intensity}/10, Duração: ${b.durationMinutes || 0} min), 
+     Consequência (Manejo: ${b.copingStrategies?.join(', ')}, Eficácia: ${b.efficacy || 'N/A'}/5, Ambiente: ${b.environmentReaction || 'N/A'}),
+     Tradução Simultânea: ${b.neurotypicalTranslation || 'N/A'},
+     Impacto em Funções Executivas: ${b.executiveFunctionImpact?.join(', ') || 'N/A'},
+     Sinais: ${b.warningSigns || 'N/A'}, 
+     Pós-Crise: ${b.postCrisisState || 'N/A'}, 
+     Notas: ${b.notes || ''}`
   ).join('\n');
 
   const prompt = `
@@ -190,8 +202,10 @@ export async function generateHealthInsights(checkIns: any[]) {
     1. Um resumo breve e encorajador do bem-estar geral.
     2. Padrões e Gatilhos: Destaque correlações entre eventos diários (sono, dieta, sintomas) e os eventos de desregulação/crise, como "Barulho alto frequentemente leva a desregulação" ou "Falta de sono correlaciona com maior intensidade de crises".
     3. Estratégias Eficazes: Identifique quais estratégias de regulação parecem ser mais eficazes para o usuário.
-    4. Recomendações práticas e gentis para cuidados e prevenção de futuras crises.
-    5. Um aviso de que os insights não substituem o aconselhamento médico profissional.
+    4. Tradução Simultânea: Ajude o usuário a entender como comunicar suas experiências neurodivergentes em contextos neurotípicos (trabalho, escola, família) com base nos registros de "Tradução Simultânea".
+    5. Impacto em Funções Executivas: Identifique padrões de como os eventos afetam a capacidade de iniciação, memória de trabalho e foco.
+    6. Recomendações práticas e gentis para cuidados e prevenção de futuras crises.
+    7. Um aviso de que os insights não substituem o aconselhamento médico profissional.
     
     Mantenha o tom de apoio, clínico, mas acolhedor. Não use cabeçalhos markdown, apenas parágrafos claros ou marcadores quando necessário.
     Responda em Português do Brasil.
