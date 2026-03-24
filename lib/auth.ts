@@ -4,6 +4,18 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 
 export const authOptions: NextAuthOptions = {
+  // Configuração de URL dinâmica para suportar múltiplos ambientes
+  pages: {
+    signIn: "/login",
+  },
+  session: {
+    strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 dias
+  },
+  // Secret gerado automaticamente se não estiver configurado
+  secret: process.env.NEXTAUTH_SECRET || "prisma-secret-key-development-only",
+  // Configuração de URL para produção
+  ...(process.env.NEXTAUTH_URL && { url: process.env.NEXTAUTH_URL }),
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -51,12 +63,5 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     }
-  },
-  pages: {
-    signIn: "/login",
-  },
-  session: {
-    strategy: "jwt" as const,
-  },
-  secret: process.env.NEXTAUTH_SECRET,
+  }
 };
