@@ -32,6 +32,7 @@ model CheckIn {
   createdAt    DateTime @default(now())
   userid       String   @db.Uuid
   user         User     @relation(fields: [userid], references: [id], onDelete: Cascade)
+
 }
 
 model Medication {

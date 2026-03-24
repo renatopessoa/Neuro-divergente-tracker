@@ -137,6 +137,7 @@ export async function getBehaviorLogs() {
   return await prisma.behaviorLog.findMany({
     where: { userId },
     orderBy: { timestamp: 'desc' },
+    select: { id: true, userId: true, timestamp: true },
   });
 }
 
