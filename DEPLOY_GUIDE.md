@@ -27,17 +27,24 @@ No Coolify, na aba **Environment Variables**, adicione as seguintes chaves:
 > **Nota**: Certifique-se de que o `DATABASE_URL` esteja marcado como "Build Variable" também, pois o Prisma precisa dele durante o build.
 
 ## 4. Banco de Dados e Migrations
-Como você já tem o banco rodando no IP `72.62.137.175`, a aplicação irá se conectar automaticamente. 
+Como o banco de dados está exposto externamente no IP `72.62.137.175`, você pode e deve rodar as migrations e o seed diretamente **do seu próprio computador (localmente)** antes de testar a aplicação no Coolify. O erro `datasource.url` na VPS ocorre porque o terminal do container do Next.js nem sempre carrega a variável do arquivo `.env` sem ajuda, e o arquivo `seed.ts` não constava na imagem do Docker de produção antes desta versão.
 
-Para rodar as migrations iniciais e criar o usuário admin, você pode usar o terminal do Coolify após o primeiro deploy bem-sucedido:
+Abra o seu terminal (PowerShell ou VSCode local) e rode:
+
 ```bash
-npx prisma migrate deploy
-npx ts-node seed.ts
+# Se estiver no Windows PowerShell
+$env:DATABASE_URL="postgres://postgres:xurOtXYuNOXzV1hVUIEWVfaK1qzLY4I89Q5LEmvemJnFakbFk1GVh1q1pIeynMIE@72.62.137.175:5432/postgres"
+
+# Execute a sincronização do banco na VPS através do seu computador local:
+npx prisma db push
+
+# E popule o usuário admin inicial:
+npx --yes tsx prisma/seed.ts
 ```
 
 O usuário padrão criado será:
 - **Email**: `admin@neurotracker.com`
-- **Senha**: `senha_provisoria_123` (Recomendamos alterar após o primeiro login).
+- **Senha**: `senha_provisoria_123` (Recomendamos alterar após o logar).
 
 ## 5. Verificação
-Após o deploy, acesse o domínio configurado no Coolify e verifique se a página de login carrega corretamente.
+Após o deploy e a criação do banco, acesse a URL configurada no Coolify (ex: `http://p08sosgwgg4ww4cksc8o8k8s.72.62.137.175.sslip.io`) e faça login.

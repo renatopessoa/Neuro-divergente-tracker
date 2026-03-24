@@ -1,0 +1,70 @@
+﻿node.exe : C:\Users\rpess\Documents\DevOPS
+\Neuro-divergente-tracker\node_modules\@pr
+isma\client\src\runtime\getPrismaClient.ts
+:320
+No C:\Program Files\nodejs\npx.ps1:29 
+caractere:3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecifie 
+   d: (C:\Users\rpess\...maClient.ts:320  
+  :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeComma 
+   ndError
+ 
+        throw new 
+PrismaClientInitializationError(
+              ^
+
+
+PrismaClientInitializationError: 
+`PrismaClient` needs to be constructed 
+with a non-empty, valid 
+`PrismaClientOptions`:
+
+```
+new PrismaClient({
+  ...
+})
+```
+
+or
+
+```
+constructor() {
+  super({ ... });
+}
+```
+          
+    at new t (C:\Users\rpess\Documents\Dev
+OPS\Neuro-divergente-tracker\node_modules\
+@prisma\client\src\runtime\getPrismaClient
+.ts:320:15)
+    at bcrypt (C:\Users\rpess\Documents\De
+vOPS\Neuro-divergente-tracker\prisma\seed.
+ts:4:16)
+    at Object.<anonymous> (C:\Users\rpess\
+Documents\DevOPS\Neuro-divergente-tracker\
+prisma\seed.ts:34:4)
+    at Module._compile 
+(node:internal/modules/cjs/loader:1562:14)
+    at Object.transformer (C:\Users\rpess\
+AppData\Local\npm-cache\_npx\fd45a72a54555
+7e9\node_modules\tsx\dist\register-D46fvsV
+_.cjs:3:1104)
+    at Module.load 
+(node:internal/modules/cjs/loader:1313:32)
+    at Function._load 
+(node:internal/modules/cjs/loader:1123:12)
+    at TracingChannel.traceSync 
+(node:diagnostics_channel:322:14)
+    at wrapModuleLoad 
+(node:internal/modules/cjs/loader:217:24)
+    at cjsLoader (node:internal/modules/es
+m/translators:263:5) {
+  clientVersion: '7.5.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+
+Node.js v22.13.0
