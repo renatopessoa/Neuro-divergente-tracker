@@ -184,9 +184,12 @@ export async function generateHealthInsights(checkIns: any[]) {
   const userId = await getUserId();
   if (!userId) throw new Error('Acesso não autorizado');
 
+  // Tenta buscar a chave de API da variável de ambiente GEMINI_API_KEY
   const apiKey = process.env.GEMINI_API_KEY || '';
+  
   if (!apiKey) {
-    throw new Error('Chave de API do Gemini não configurada.');
+    console.error("ERRO: GEMINI_API_KEY não configurada nas variáveis de ambiente.");
+    return "A função de insights de IA não está configurada corretamente no servidor (GEMINI_API_KEY faltando).";
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
