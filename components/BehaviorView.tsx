@@ -86,7 +86,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
       postCrisisState,
       notes,
     };
-    
+
     await saveBehaviorLog(newLog);
     await onRefresh();
     setIsSaving(false);
@@ -114,25 +114,25 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
       <div className="bg-surface p-6 md:p-8 rounded-3xl shadow-sm border border-border-subtle overflow-hidden relative">
         <AnimatePresence mode="wait">
-          
+
           {step === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Clock className="text-primary-500" size={20}/> 1. Contexto</h3>
-              
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Clock className="text-primary-500" size={20} /> 1. Contexto</h3>
+
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Data e Hora exata</label>
-                <input 
-                  type="datetime-local" 
+                <input
+                  type="datetime-local"
                   value={timestamp}
                   onChange={(e) => setTimestamp(e.target.value)}
                   className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none"
                 />
               </section>
-              
+
               <section>
-                <label className="block text-sm font-semibold text-text-muted mb-2 flex items-center gap-1"><MapPin size={16}/> Local e Atividade</label>
-                <input 
-                  type="text" 
+                <label className="block text-sm font-semibold text-text-muted mb-2 flex items-center gap-1"><MapPin size={16} /> Local e Atividade</label>
+                <input
+                  type="text"
                   placeholder=""
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
@@ -141,9 +141,9 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
               </section>
 
               <section>
-                <label className="block text-sm font-semibold text-text-muted mb-2 flex items-center gap-1"><Users size={16}/> Pessoas Presentes</label>
-                <input 
-                  type="text" 
+                <label className="block text-sm font-semibold text-text-muted mb-2 flex items-center gap-1"><Users size={16} /> Pessoas Presentes</label>
+                <input
+                  type="text"
                   placeholder=""
                   value={peoplePresent}
                   onChange={(e) => setPeoplePresent(e.target.value)}
@@ -155,8 +155,8 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Brain className="text-primary-500" size={20}/> 2. Antecedentes (Gatilhos)</h3>
-              
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Brain className="text-primary-500" size={20} /> 2. Antecedentes (Gatilhos)</h3>
+
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Fatores de Vulnerabilidade (Fundo)</label>
                 <p className="text-xs text-text-muted mb-3">Condições internas que baixam a tolerância no dia de hoje.</p>
@@ -203,8 +203,8 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Activity className="text-primary-500" size={20}/> 3. Comportamento (A Crise)</h3>
-              
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><Activity className="text-primary-500" size={20} /> 3. Comportamento (A Crise)</h3>
+
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Classificação do Evento</label>
                 <select value={eventType} onChange={(e) => setEventType(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none">
@@ -218,7 +218,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Descrição Exata da Ação</label>
-                <p className="text-xs text-text-muted mb-3">Foque apenas no que foi observado visualmente e auditivamente (Ex: "Gritou e atirou o objeto").</p>
+                <p className="text-xs text-text-muted mb-3">Foque apenas no que foi observado visualmente e auditivamente (Ex: &quot;Gritou e atirou o objeto&quot;).</p>
                 <textarea placeholder="O que a pessoa fez efetivamente?" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-3 bg-surface-muted border border-border-subtle text-text-main rounded-xl focus:ring-2 focus:ring-primary-500 focus:outline-none min-h-[80px]" />
               </section>
 
@@ -237,8 +237,8 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
           {step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><HeartHandshake className="text-primary-500" size={20}/> 4. Consequência (Reação)</h3>
-              
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><HeartHandshake className="text-primary-500" size={20} /> 4. Consequência (Reação)</h3>
+
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Estratégias de Manejo Adotadas</label>
                 <p className="text-xs text-text-muted mb-3">O que você/cuidador fez quando a crise iniciou?</p>
@@ -288,8 +288,8 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
 
           {step === 5 && (
             <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><FileText className="text-primary-500" size={20}/> 5. Observações Finais</h3>
-              
+              <h3 className="text-lg font-bold text-text-main flex items-center gap-2 mb-4"><FileText className="text-primary-500" size={20} /> 5. Observações Finais</h3>
+
               <section>
                 <label className="block text-sm font-semibold text-text-muted mb-2">Sinais Precursores (Aviso)</label>
                 <p className="text-xs text-text-muted mb-2">O que aconteceu logo antes que poderia nos avisar de que a crise viria? (Ex: agitação motora, roer unhas, ficar pálido, respiração ofegante)</p>
@@ -312,7 +312,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
         </AnimatePresence>
 
         <div className="flex justify-between items-center mt-8 pt-4 border-t border-border-subtle">
-          <button 
+          <button
             type="button"
             onClick={() => {
               if (step > 1) {
@@ -321,27 +321,27 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
               } else {
                 setActiveTab('dashboard');
               }
-            }} 
+            }}
             className="flex items-center gap-2 px-4 py-2 font-medium text-text-muted hover:text-text-main transition-colors"
           >
             <ArrowLeft size={18} /> {step === 1 ? 'Cancelar' : 'Voltar'}
           </button>
 
           {step < totalSteps ? (
-            <button 
+            <button
               type="button"
               onClick={() => {
                 setStep(step + 1);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-              }} 
+              }}
               className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity shadow-sm"
             >
               Avançar <ArrowRight size={18} />
             </button>
           ) : (
-            <button 
+            <button
               type="button"
-              onClick={handleSave} 
+              onClick={handleSave}
               disabled={isSaving}
               className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
             >
