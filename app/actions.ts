@@ -157,7 +157,7 @@ export async function saveBehaviorLog(data: any) {
   revalidatePath('/');
 }
 
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 
@@ -165,13 +165,14 @@ export async function generateHealthInsights(checkIns: any[]) {
   const userId = await getUserId();
   if (!userId) throw new Error('Acesso não autorizado');
 
-  const apiKey = process.env.OPENAI_API_KEY || '';
+  const apiKey = process.env.GEMINI_API_KEY || '';
   if (!apiKey) {
-    throw new Error('Chave de API do OpenAI não configurada.');
+    throw new Error('Chave de API do Gemini não configurada.');
   }
 
-  const openai = new OpenAI({ apiKey });
-  
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
   const behaviorLogs = await getBehaviorLogs();
   
   const dataString = checkIns.slice(0, 14).map(c => 
@@ -184,6 +185,7 @@ export async function generateHealthInsights(checkIns: any[]) {
 
   const prompt = `
     Você é um assistente de saúde de IA empático e profissional analisando o diário de sintomas de um paciente nos últimos 14 dias, incluindo os registros diários e eventos de comportamento/desregulação.
+    Seu foco é em pacientes com perfis neurodivergentes.
     Analise os seguintes dados e forneça:
     1. Um resumo breve e encorajador do bem-estar geral.
     2. Padrões e Gatilhos: Destaque correlações entre eventos diários (sono, dieta, sintomas) e os eventos de desregulação/crise, como "Barulho alto frequentemente leva a desregulação" ou "Falta de sono correlaciona com maior intensidade de crises".
@@ -201,14 +203,13 @@ export async function generateHealthInsights(checkIns: any[]) {
     ${behaviorString || 'Nenhum evento registrado.'}
   `;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: "Você é um assistente de saúde IA especialista em dados de diários de pacientes com perfis neurodivergentes." },
-      { role: "user", content: prompt }
-    ],
-    temperature: 0.7,
-  });
-
-  return response.choices[0]?.message?.content || "Houve um erro ao processar os insights.";
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    return text;
+  } catch (error) {
+    console.error("Erro ao gerar insights com Gemini:", error);
+    return "Houve um erro ao processar os insights com o Gemini.";
+  }
 }

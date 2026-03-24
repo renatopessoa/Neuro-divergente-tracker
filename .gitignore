@@ -1,9 +1,66 @@
+# dependencies
 node_modules/
-.next/
+.pnp
+.pnp.js
+
+# testing
 coverage/
+
+# next.js
+.next/
+out/
+next-env.d.ts.local
+
+# production
+build/
+dist/
+
+# misc
 .DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 *.log
-.env*
+logs/
+
+# local env files
+.env*.local
+.env
+.env.test
+.env.development
+.env.production
 !.env.example
 
-/generated/prisma
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# prisma
+/generated/
+/generated/prisma/
+
+# firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+pubsub-debug.log*
+ui-debug.log*
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# temporary/debug files
+output.txt
+p1.txt
+p2.txt
+ts_error.txt
+error.txt
+debug.txt
