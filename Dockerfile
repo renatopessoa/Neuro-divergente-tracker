@@ -21,6 +21,9 @@ RUN \
 # Copia o resto do código da aplicação
 COPY . .
 
+# Garante que o diretório public existe para evitar erro no estágio runner
+RUN mkdir -p public
+
 # Gera o cliente Prisma
 RUN npx prisma generate
 
