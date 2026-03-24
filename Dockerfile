@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM node:22-alpine AS base
 
 # Fase 1: Instalando e buildando a aplicação
 FROM base AS builder
@@ -54,5 +54,6 @@ USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-CMD HOSTNAME="0.0.0.0" node server.js
+CMD ["node", "server.js"]
