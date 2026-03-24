@@ -122,7 +122,7 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
 
         <div className="bg-surface p-6 rounded-3xl shadow-sm border border-border-subtle md:col-span-2">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-text-main flex items-center gap-2"><ClipboardList size={18} className="text-primary-500"/> Eventos de Hoje</h3>
+            <h3 className="font-semibold text-text-main flex items-center gap-2"><ClipboardList size={18} className="text-primary-500"/> Registros Prisma de Hoje</h3>
           </div>
           
           <div className="space-y-3">

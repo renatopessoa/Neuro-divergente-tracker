@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { BrainCircuit, AlertCircle, MessageSquare } from 'lucide-react';
+import { BrainCircuit, AlertCircle, MessageSquare, Sparkles } from 'lucide-react';
 import { CheckIn } from '../app/types';
 import { generateHealthInsights } from '../app/actions';
 
@@ -32,18 +32,18 @@ export function InsightsView({ checkIns }: InsightsViewProps) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-3xl mx-auto space-y-6">
       <header>
-        <h2 className="text-2xl font-bold text-slate-900">Insights de Saúde com IA</h2>
-        <p className="text-slate-500">Descubra padrões e gatilhos em seus registros diários</p>
+        <h2 className="text-2xl font-bold text-slate-900">Análise Prisma com IA</h2>
+        <p className="text-slate-500">Transformando dados em clareza e autoconhecimento</p>
       </header>
 
       <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100">
         <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
-            <BrainCircuit size={24} />
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-100 to-purple-100 flex items-center justify-center text-primary-600 shrink-0">
+            <Sparkles size={24} />
           </div>
           <div>
-            <h3 className="font-semibold text-slate-800 text-lg">Análise de Padrões</h3>
-            <p className="text-sm text-slate-500">Nossa IA analisa seus check-ins recentes para encontrar correlações entre seu estilo de vida e sintomas.</p>
+            <h3 className="font-semibold text-slate-800 text-lg">Visão do Prisma</h3>
+            <p className="text-sm text-slate-500">Nossa IA decompõe seus registros recentes para encontrar padrões invisíveis e sugerir caminhos de regulação.</p>
           </div>
         </div>
 

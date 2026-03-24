@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { Activity, Plus, Pill, BrainCircuit, LineChart, LogOut, ClipboardList } from 'lucide-react';
+import { Activity, Plus, Pill, BrainCircuit, LineChart, LogOut, ClipboardList, Sparkles } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
 // Components
@@ -90,10 +90,10 @@ export default function SymptomTrackerApp() {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 fixed top-0 bottom-0 left-0 bg-surface border-r border-border-subtle p-4 z-50">
         <div className="flex items-center gap-2 mb-8 px-2">
-          <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white">
-            <Activity size={20} />
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white">
+            <Sparkles size={20} />
           </div>
-          <h1 className="font-bold text-lg tracking-tight text-text-main">NeuroTracker</h1>
+          <h1 className="font-bold text-xl tracking-tight text-text-main">Prisma</h1>
         </div>
         <nav className="flex flex-col gap-2 flex-1">
           <SidebarItem icon={<Activity />} label="Início" tab="dashboard" />

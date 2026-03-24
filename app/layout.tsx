@@ -9,8 +9,8 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: 'NeuroTracker',
-  description: 'Acompanhamento de Sintomas e Saúde',
+  title: 'Prisma - Neurodiversidade e Autoconhecimento',
+  description: 'Transformando desafios em clareza e conexão.',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
