@@ -7,16 +7,16 @@ datasource db {
 }
 
 model User {
-  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name         String
-  email        String       @unique
+  email        String        @unique
   passwordHash String
-  role         String       @default("ADMIN")
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  role         String        @default("ADMIN")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  behaviorLogs BehaviorLog[]
   checkIns     CheckIn[]
   medications  Medication[]
-  behaviorLogs BehaviorLog[]
 }
 
 model CheckIn {
@@ -55,45 +55,27 @@ model MedLog {
 }
 
 model BehaviorLog {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId                String   @db.Uuid
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt             DateTime @default(now())
-
-  // 1. Contexto e Identificação
-  timestamp             DateTime @default(now())
-  location              String?
-  peoplePresent         String?
-  
-  // NOVO: Nível de Alerta Pré-Evento
-  preCrisisArousal      Int?     // Escala 1-10: 1=Muito baixo/letárgico, 10=Muito alto/hiperativo
-
-  // 2. Antecedente (O Gatilho)
-  vulnerabilityFactors  String[]
-  perceivedTriggers     String[]
-  
-  // NOVO: Tipo de Sobrecarga Sensorial
-  sensorOverloadTypes   String[] // Ex: ["Visual", "Auditiva", "Tátil", "Olfativa", "Proprioceptiva", "Vestibular"]
-
-  // 3. Topografia do Comportamento (A Crise)
-  eventType             String
-  description           String?
-  durationMinutes       Int?
-  intensity             Int
-
-  // 4. Consequência e Resposta
-  copingStrategies      String[]
-  efficacy              Int?
-  environmentReaction   String?
-  
-  // NOVO: Tradução Simultânea (como explicar para um neurotípico)
-  neurotypicalTranslation String? // Ex: "Tive uma sobrecarga sensorial" → "Não consegui processar múltiplos estímulos ao mesmo tempo"
-  
-  // NOVO: Impacto em Funções Executivas
-  executiveFunctionImpact String[] // Ex: ["Iniciação de tarefas", "Memória de trabalho", "Foco/Atenção", "Organização"]
-
-  // 5. Notas Adicionais e Observações
-  warningSigns          String?
-  postCrisisState       String?
-  notes                 String?
+  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                  String   @db.Uuid
+  timestamp               DateTime @default(now())
+  eventType               String
+  description             String?
+  perceivedTriggers       String[]
+  intensity               Int
+  durationMinutes         Int?
+  copingStrategies        String[]
+  notes                   String?
+  createdAt               DateTime @default(now())
+  efficacy                Int?
+  environmentReaction     String?
+  location                String?
+  peoplePresent           String?
+  postCrisisState         String?
+  vulnerabilityFactors    String[]
+  warningSigns            String?
+  executiveFunctionImpact String[]
+  neurotypicalTranslation String?
+  preCrisisArousal        Int?
+  sensorOverloadTypes     String[]
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
