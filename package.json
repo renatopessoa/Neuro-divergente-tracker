@@ -10,7 +10,7 @@
     "clean": "next clean"
   },
   "dependencies": {
-    "@google/genai": "^1.17.0",
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.1",
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",

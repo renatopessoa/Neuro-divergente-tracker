@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcrypt';
 
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
