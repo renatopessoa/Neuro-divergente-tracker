@@ -1,28 +1,40 @@
-# Estágio de dependências
-FROM node:22-alpine AS deps
-RUN apk add --no-cache libc6-compat
+FROM node:18-alpine AS base
+
+# Fase 1: Instalando e buildando a aplicação
+FROM base AS builder
+# libc6-compat é necessário para algumas dependências nativas (como o Prisma)
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
-RUN npm ci
+# Copia os arquivos de configuração de pacotes e o schema do Prisma
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+COPY prisma ./prisma/
 
-# Estágio de build
-FROM node:22-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Instala as dependências
+RUN \
+    if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+    elif [ -f package-lock.json ]; then npm ci; \
+    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+    else echo "Lockfile não encontrado." && npm install; \
+    fi
+
+# Copia o resto do código da aplicação
 COPY . .
 
-# Variável necessária para o Prisma gerar o cliente durante o build
-ARG DATABASE_URL
-ENV DATABASE_URL=$DATABASE_URL
-
-# Gera o Prisma Client ANTES do build
+# Gera o cliente Prisma
 RUN npx prisma generate
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Executa o build da aplicação
 RUN npm run build
 
-# Estágio de produção
-FROM node:22-alpine AS runner
+# Fase 2: Imagem de produção
+FROM base AS runner
 WORKDIR /app
+
+# Instala o openssl para o Prisma no runtime
+RUN apk add --no-cache openssl
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -32,25 +44,15 @@ RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 
-# Configura as permissões para o cache do Next.js
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Aproveita o output standalone do Next.js
+# A opção standalone copia apenas o que é estritamente necessário para rodar a aplicação
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# IMPORTANTE: Copiar o Prisma Client gerado para o runner
-# O standalone do Next.js geralmente não inclui o binário do prisma engine se não for explicitamente necessário
-# Mas as definições de tipo e o runtime do cliente são necessários.
-# Ao usar o caminho padrão, ele fica em node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+# O prisma precisa estar presente na execução em produção
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 USER nextjs
 
 EXPOSE 3000
-
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD HOSTNAME="0.0.0.0" node server.js
