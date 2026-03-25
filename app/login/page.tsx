@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Activity, Lock, Mail, AlertCircle, User, ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react';
+import { Activity, Lock, Mail, AlertCircle, User, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { registerUser } from '@/app/actions';
 
@@ -79,9 +79,7 @@ export default function LoginPage() {
               exit={{ opacity: 0, x: 20 }}
             >
               <div className="flex flex-col items-center mb-8">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white mb-4">
-                  <Sparkles size={28} />
-                </div>
+                <img src="/assets/prisma-icon.png" alt="Prisma" className="w-16 h-16 rounded-xl mb-4" />
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900">Prisma</h1>
                 <p className="text-slate-500 text-center">Entre para acessar seu painel</p>
               </div>
