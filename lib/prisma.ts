@@ -6,7 +6,17 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 const createPrismaClient = () => {
   const connectionString = process.env.DATABASE_URL;
-  const pool = new Pool({ connectionString });
+  
+  if (!connectionString && process.env.NODE_ENV === "production") {
+    console.warn("DATABASE_URL não configurada em produção.");
+  }
+
+  const pool = new Pool({ 
+    connectionString,
+    // Adiciona suporte a SSL para bancos gerenciados (Neon, Supabase, Railway) em produção
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
+  });
+  
   const adapter = new PrismaPg(pool as any);
   
   return new PrismaClient({
