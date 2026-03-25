@@ -5,6 +5,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model User {
@@ -12,9 +18,10 @@ model User {
   name         String
   email        String        @unique
   passwordHash String
-  role         String        @default("ADMIN")
+  role         Role          @default(USER)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+
   behaviorLogs BehaviorLog[]
   checkIns     CheckIn[]
   medications  Medication[]
@@ -22,6 +29,7 @@ model User {
 
 model CheckIn {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @db.Uuid
   date         DateTime @default(now())
   mood         Int
   painLevel    Int
@@ -30,29 +38,44 @@ model CheckIn {
   dietNotes    String?
   symptoms     String[]
   generalNotes String?
+  
   createdAt    DateTime @default(now())
-  userId       String   @db.Uuid
+  updatedAt    DateTime @updatedAt
+
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
 }
 
 model Medication {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @db.Uuid
   name      String
   dosage    String
   frequency String
   time      String
+  
   createdAt DateTime @default(now())
-  userId    String   @db.Uuid
+  updatedAt DateTime @updatedAt
+
   logs      MedLog[]
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model MedLog {
   id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  medId      String     @db.Uuid
   date       DateTime   @default(now())
   taken      Boolean    @default(true)
-  medId      String     @db.Uuid
+  
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
   medication Medication @relation(fields: [medId], references: [id], onDelete: Cascade)
+
+  @@index([medId, date])
 }
 
 model BehaviorLog {
@@ -66,7 +89,6 @@ model BehaviorLog {
   durationMinutes         Int?
   copingStrategies        String[]
   notes                   String?
-  createdAt               DateTime @default(now())
   efficacy                Int?
   environmentReaction     String?
   location                String?
@@ -78,5 +100,11 @@ model BehaviorLog {
   neurotypicalTranslation String?
   preCrisisArousal        Int?
   sensorOverloadTypes     String[]
+  
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
   user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
 }
