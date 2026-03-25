@@ -153,7 +153,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
               </section>
 
               <section>
-                <label className="block text-sm font-semibold text-text-muted mb-2 flex items-center gap-1"><MapPin size={16} /> Local e Atividade</label>
+                <label className="block text-sm font-semibold text-text-muted mb-2 items-center gap-1"><MapPin size={16} /> Local e Atividade</label>
                 <input
                   type="text"
                   placeholder=""
@@ -164,7 +164,7 @@ export function BehaviorView({ setActiveTab, onRefresh }: BehaviorViewProps) {
               </section>
 
               <section>
-                <label className="block text-sm font-semibold text-text-muted mb-2 flex items-center gap-1"><Users size={16} /> Pessoas Presentes</label>
+                <label className="block text-sm font-semibold text-text-muted mb-2 items-center gap-1"><Users size={16} /> Pessoas Presentes</label>
                 <input
                   type="text"
                   placeholder=""

@@ -44,9 +44,13 @@ export async function registerUser(data: any) {
 export async function getCheckIns() {
   const userId = await getUserId();
   if (!userId) return [];
-  
+
   return await prisma.checkIn.findMany({
-    where: { user: userId },
+    where: { 
+      user: {
+        id: userId
+      }
+    },
     orderBy: { date: 'desc' },
   });
 }
