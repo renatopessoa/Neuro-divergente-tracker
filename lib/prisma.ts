@@ -14,8 +14,7 @@ const createPrismaClient = () => {
 
   const pool = new Pool({ 
     connectionString,
-    // Adiciona suporte a SSL para bancos gerenciados (Neon, Supabase, Railway) em produção
-    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+    // A chave 'ssl' foi removida. O SSL agora é controlado exclusivamente pelos parâmetros da DATABASE_URL.
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
