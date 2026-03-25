@@ -46,7 +46,7 @@ export async function getCheckIns() {
   if (!userId) return [];
   
   return await prisma.checkIn.findMany({
-    where: { userId: userId },
+    where: { user: userId },
     orderBy: { date: 'desc' },
   });
 }
