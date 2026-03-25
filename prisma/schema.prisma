@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  
 }
 
 model User {
@@ -33,7 +32,6 @@ model CheckIn {
   createdAt    DateTime @default(now())
   userId       String   @db.Uuid
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
 }
 
 model Medication {

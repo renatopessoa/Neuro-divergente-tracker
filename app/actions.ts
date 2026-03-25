@@ -59,17 +59,14 @@ export async function saveCheckIn(data: any) {
   const userId = await getUserId();
   if (!userId) throw new Error('Acesso não autorizado');
 
-  const { userid, date, ...rest } = data;
+  const { date, ...rest } = data;
   const dateObj = date ? new Date(date) : new Date();
 
   await prisma.checkIn.create({
     data: {
       ...rest,
       date: dateObj,
-      user: { connect: { 
-        id: userId 
-      } 
-    },
+      user: { connect: { id: userId } },
     },
   });
 
