@@ -42,46 +42,62 @@ export async function registerUser(data: any) {
 }
 
 export async function getCheckIns() {
-  const userId = await getUserId();
-  if (!userId) return [];
+  try {
+    const userId = await getUserId();
+    if (!userId) return [];
 
-  return await prisma.checkIn.findMany({
-    where: { 
-      user: {
-        id: userId
-      }
-    },
-    orderBy: { date: 'desc' },
-  });
+    return await prisma.checkIn.findMany({
+      where: { 
+        user: {
+          id: userId
+        }
+      },
+      orderBy: { date: 'desc' },
+    });
+  } catch (error) {
+    console.error("Erro ao buscar check-ins:", error);
+    return [];
+  }
 }
 
 export async function saveCheckIn(data: any) {
-  const userId = await getUserId();
-  if (!userId) throw new Error('Acesso não autorizado');
+  try {
+    const userId = await getUserId();
+    if (!userId) throw new Error('Acesso não autorizado: Sessão não encontrada');
 
-  const { date, ...rest } = data;
-  const dateObj = date ? new Date(date) : new Date();
+    const { date, ...rest } = data;
+    const dateObj = date ? new Date(date) : new Date();
 
-  await prisma.checkIn.create({
-    data: {
-      ...rest,
-      date: dateObj,
-      user: { connect: { id: userId } },
-    },
-  });
+    await prisma.checkIn.create({
+      data: {
+        ...rest,
+        date: dateObj,
+        user: { connect: { id: userId } },
+      },
+    });
 
-  revalidatePath('/');
+    revalidatePath('/');
+    return { success: true };
+  } catch (error: any) {
+    console.error("Erro ao salvar check-in:", error);
+    throw new Error(error.message || "Falha ao salvar registro");
+  }
 }
 
 export async function getMedications() {
-  const userId = await getUserId();
-  if (!userId) return [];
+  try {
+    const userId = await getUserId();
+    if (!userId) return [];
 
-  return await prisma.medication.findMany({
-    where: { userId },
-    include: { logs: true },
-    orderBy: { createdAt: 'asc' },
-  });
+    return await prisma.medication.findMany({
+      where: { userId },
+      include: { logs: true },
+      orderBy: { createdAt: 'asc' },
+    });
+  } catch (error) {
+    console.error("Erro ao buscar medicamentos:", error);
+    return [];
+  }
 }
 
 export async function addMedication(data: any) {

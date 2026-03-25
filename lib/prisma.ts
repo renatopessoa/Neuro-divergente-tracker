@@ -15,7 +15,10 @@ const createPrismaClient = () => {
   const pool = new Pool({ 
     connectionString,
     // Adiciona suporte a SSL para bancos gerenciados (Neon, Supabase, Railway) em produção
-    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
   });
   
   const adapter = new PrismaPg(pool as any);
