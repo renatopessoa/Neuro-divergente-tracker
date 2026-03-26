@@ -8,8 +8,13 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
 async function getUserId() {
-  const session = await getServerSession(authOptions);
-  return (session?.user as any)?.id;
+  try {
+    const session = await getServerSession(authOptions);
+    return session?.user?.id as string | undefined;
+  } catch (error) {
+    console.error("Erro ao recuperar sessão:", error);
+    return undefined;
+  }
 }
 
 export async function registerUser(data: any) {
@@ -47,11 +52,7 @@ export async function getCheckIns() {
     if (!userId) return [];
 
     return await prisma.checkIn.findMany({
-      where: { 
-        user: {
-          id: userId
-        }
-      },
+      where: { userId },
       orderBy: { date: 'desc' },
     });
   } catch (error) {
@@ -151,13 +152,18 @@ export async function deleteMedication(id: string) {
 // --- Behavior Logs Actions ---
 
 export async function getBehaviorLogs() {
-  const userId = await getUserId();
-  if (!userId) return [];
-  
-  return await prisma.behaviorLog.findMany({
-    where: { userId },
-    orderBy: { timestamp: 'desc' },
-  });
+  try {
+    const userId = await getUserId();
+    if (!userId) return [];
+    
+    return await prisma.behaviorLog.findMany({
+      where: { userId },
+      orderBy: { timestamp: 'desc' },
+    });
+  } catch (error) {
+    console.error("Erro ao buscar behavior logs:", error);
+    return [];
+  }
 }
 
 export async function saveBehaviorLog(data: any) {

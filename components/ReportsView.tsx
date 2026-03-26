@@ -59,41 +59,107 @@ export function ReportsView({ checkIns }: ReportsViewProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 print:break-inside-avoid">
-          <h3 className="font-semibold text-slate-800 mb-6">Tendências de Dor vs Humor</h3>
+          <h3 className="font-semibold text-slate-800 mb-6">Evolução de Humor e Sono</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
-                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[0, 10]} />
-                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[1, 5]} />
+                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[1, 5]} />
+                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[0, 12]} />
                 <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   labelStyle={{ fontWeight: 'bold', color: '#1e293b', marginBottom: '4px' }}
                 />
-                <Line yAxisId="left" type="monotone" dataKey="pain" name="Dor (0-10)" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                <Line yAxisId="right" type="monotone" dataKey="mood" name="Humor (1-5)" stroke="#6366f1" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                <Line yAxisId="left" type="monotone" dataKey="mood" name="Humor (1-5)" stroke="#6366f1" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                <Line yAxisId="right" type="monotone" dataKey="sleep" name="Sono (hrs)" stroke="#38bdf8" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
               </RechartsLineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 print:break-inside-avoid">
-          <h3 className="font-semibold text-slate-800 mb-6">Duração do Sono</h3>
+          <h3 className="font-semibold text-slate-800 mb-6">Nível de Dor</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[0, 12]} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[0, 10]} />
                 <Tooltip 
                   cursor={{ fill: '#f8fafc' }}
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
-                <Bar dataKey="sleep" name="Sono (hrs)" fill="#38bdf8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="pain" name="Dor (0-10)" fill="#f43f5e" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden print:break-inside-avoid">
+        <div className="p-6 border-b border-slate-50">
+          <h3 className="font-semibold text-slate-800">Histórico Completo de Check-ins</h3>
+          <p className="text-sm text-slate-500">Detalhamento de todos os registros realizados</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50">
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Data</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Humor/Dor</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Sintomas</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Anotações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {[...checkIns].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((c) => (
+                <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-slate-900">
+                      {format(parseISO(c.date), "dd 'de' MMMM", { locale: ptBR })}
+                    </div>
+                    <div className="text-xs text-slate-400">
+                      {format(parseISO(c.date), "yyyy")}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 mr-2">
+                      H: {c.mood}
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700">
+                      D: {c.painLevel}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-1">
+                      {c.symptoms.length > 0 ? (
+                        c.symptoms.map((s, idx) => (
+                          <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 capitalize">
+                            {s}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Sem sintomas</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-sm text-slate-600 line-clamp-2 max-w-xs" title={c.generalNotes || ''}>
+                      {c.generalNotes || <span className="text-slate-400 italic">Nenhuma anotação</span>}
+                    </p>
+                  </td>
+                </tr>
+              ))}
+              {checkIns.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-slate-500 italic">
+                    Nenhum check-in registrado até o momento.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
