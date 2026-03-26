@@ -76,7 +76,8 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Correção aplicada aqui: Removido lg:grid-cols-3 e mantido o limite de 2 colunas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-6">
           <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-subtle">
             <div className="flex justify-between items-start mb-4">
@@ -182,6 +183,7 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
           </div>
         </div>
 
+        {/* Como o grid acima agora tem 2 colunas, esse elemento com md:col-span-2 vai ocupar 100% da largura, alinhando as bordas */}
         <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-subtle md:col-span-2">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold text-text-main flex items-center gap-2"><ClipboardList size={18} className="text-primary-500"/> Registros Prisma de Hoje</h3>
