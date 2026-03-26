@@ -10,7 +10,9 @@ import { authOptions } from "@/lib/auth";
 async function getUserId() {
   try {
     const session = await getServerSession(authOptions);
-    return (session as any)?.user?.id;
+    // Usamos um type assertion que diz ao TS para ignorar a validação do tipo neste ponto específico
+    const user = session?.user as any;
+    return user?.id as string | undefined;
   } catch (error) {
     console.error("Erro ao recuperar sessão:", error);
     return undefined;
