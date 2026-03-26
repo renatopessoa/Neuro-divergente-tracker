@@ -222,7 +222,7 @@ export async function saveBehaviorLog(data: any) {
   }
 }
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 
@@ -230,16 +230,16 @@ export async function generateHealthInsights(checkIns: any[]) {
   const userId = await getUserId();
   if (!userId) throw new Error('Acesso não autorizado');
 
-  // Tenta buscar a chave de API da variável de ambiente GEMINI_API_KEY
-  const apiKey = process.env.GEMINI_API_KEY || '';
+  const apiKey = process.env.OPENAI_API_KEY || '';
   
   if (!apiKey) {
-    console.error("ERRO: GEMINI_API_KEY não configurada nas variáveis de ambiente.");
-    return "A função de insights de IA não está configurada corretamente no servidor (GEMINI_API_KEY faltando).";
+    console.error("ERRO: OPENAI_API_KEY não configurada nas variáveis de ambiente.");
+    return "A função de insights de IA não está configurada corretamente no servidor (OPENAI_API_KEY faltando).";
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  const openai = new OpenAI({
+    apiKey: apiKey,
+  });
 
   const behaviorLogs = await getBehaviorLogs();
   
@@ -264,21 +264,36 @@ export async function generateHealthInsights(checkIns: any[]) {
   ).join('\n');
 
   const prompt = `
-    Você é um assistente de saúde de IA empático e profissional analisando o diário de sintomas de um paciente nos últimos 14 dias, incluindo os registros diários e eventos de comportamento/desregulação.
-    Seu foco é em pacientes com perfis neurodivergentes.
-    Analise os seguintes dados e forneça:
-    1. Um resumo breve e encorajador do bem-estar geral.
-    2. Padrões e Gatilhos: Destaque correlações entre eventos diários (sono, dieta, sintomas) e os eventos de desregulação/crise, como "Barulho alto frequentemente leva a desregulação" ou "Falta de sono correlaciona com maior intensidade de crises".
-    3. Estratégias Eficazes: Identifique quais estratégias de regulação parecem ser mais eficazes para o usuário.
-    4. Tradução Simultânea: Ajude o usuário a entender como comunicar suas experiências neurodivergentes em contextos neurotípicos (trabalho, escola, família) com base nos registros de "Tradução Simultânea".
-    5. Impacto em Funções Executivas: Identifique padrões de como os eventos afetam a capacidade de iniciação, memória de trabalho e foco.
-    6. Recomendações práticas e gentis para cuidados e prevenção de futuras crises.
-    7. Um aviso de que os insights não substituem o aconselhamento médico profissional.
-    
-    Mantenha o tom de apoio, clínico, mas acolhedor. Não use cabeçalhos markdown, apenas parágrafos claros ou marcadores quando necessário.
-    Responda em Português do Brasil.
-    
-    Dados de Check-ins (Últimos 14 dias):
+ const prompt = 
+    Você é o Prisma AI, um Analista de Saúde Digital especializado em Neurodivergência. Sua função é processar dados quantitativos e qualitativos para oferecer suporte clínico, empático e preventivo.
+
+    ### DADOS PARA ANÁLISE (Últimos 14 dias):
+    DADOS DE CHECK-IN:
+    ${dataString}
+
+    DADOS DE COMPORTAMENTO E DESREGULAÇÃO:
+    ${behaviorString || 'Nenhum evento registrado no período.'}
+
+    ### SUA TAREFA:
+    Analise os dados acima procurando por correlações entre as variáveis (Sono, Humor, Sobrecarga Sensorial e Eventos). Siga estas diretrizes:
+
+    1. **Análise de Tendências (Resumo):** Identifique a "temperatura" geral do período. O usuário está em uma curva de estabilidade ou de exaustão progressiva? Use um tom encorajador, mas realista.
+
+    2. **Mapeamento de Gatilhos e Correlações:** Seja específico. Procure padrões como "Baixa qualidade de sono aumenta a intensidade das crises" ou "Fatores de vulnerabilidade específicos que precedem a sobrecarga sensorial".
+
+    3. **Eficácia de Regulação:** Identifique quais estratégias de manejo (copingStrategies) tiveram os maiores índices de eficácia.
+
+    4. **Ponte de Comunicação (Tradução Neurotípica):** Transforme os registros de "Tradução Simultânea" e "Impacto em Funções Executivas" em scripts curtos e profissionais que o usuário possa usar para comunicar suas necessidades a terceiros.
+
+    5. **Prevenção Baseada em Sinais:** Identifique Sinais de Alerta (warningSigns) recorrentes e sugira uma ação imediata de prevenção.
+
+    6. **Acessibilidade:** Responda com parágrafos curtos, bullets para dados técnicos e negrito em termos importantes para facilitar a leitura.
+
+    ### AVISO LEGAL:
+    Ao final, inclua: "Estes insights são gerados por IA com base nos seus registros e não substituem o acompanhamento médico ou terapêutico profissional."
+
+    Responda em Português do Brasil, mantendo um tom profissional, clínico e acolhedor.
+  ;
     ${dataString}
     
     Dados de Rastreamento de Comportamento e Desregulação (últimos 14 dias):
@@ -286,12 +301,18 @@ export async function generateHealthInsights(checkIns: any[]) {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    return text;
-  } catch (error) {
-    console.error("Erro ao gerar insights com Gemini:", error);
-    return "Houve um erro ao processar os insights com o Gemini.";
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini", // Ou "gpt-4-turbo" / "gpt-3.5-turbo"
+      messages: [
+        { role: "system", content: "Você é um assistente especializado em neurodiversidade." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.7,
+    });
+
+    return response.choices[0].message.content;
+  } catch (error: any) {
+    console.error("Erro ao gerar insights com OpenAI:", error);
+    return `Houve um erro ao processar os insights com a OpenAI: ${error.message}`;
   }
 }
