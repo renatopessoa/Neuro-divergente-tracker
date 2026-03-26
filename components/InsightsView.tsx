@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { BrainCircuit, AlertCircle, MessageSquare, Sparkles } from 'lucide-react';
+import { Brain, AlertCircle, MessageSquare, Sparkles } from 'lucide-react';
 import { CheckIn } from '../app/types';
 import { generateHealthInsights } from '../app/actions';
 
@@ -49,7 +49,7 @@ export function InsightsView({ checkIns }: InsightsViewProps) {
 
         {!insights && !loading && (
           <button onClick={generateInsights} className="w-full bg-indigo-50 text-indigo-700 py-4 rounded-xl font-medium hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2">
-            <BrainCircuit size={18} /> Gerar Insights
+            <Brain size={18} /> Gerar Insights
           </button>
         )}
 

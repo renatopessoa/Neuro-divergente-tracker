@@ -3,9 +3,22 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcrypt';
+import { CheckIn, Medication, MedLog, BehaviorLog } from '@prisma/client';
 
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+
+/**
+ * Interface para o retorno consolidado do relatório.
+ */
+export interface FullReportData {
+  user: {
+    name: string | null;
+  };
+  checkIns: CheckIn[];
+  medications: (Medication & { logs: MedLog[] })[];
+  behaviorLogs: BehaviorLog[];
+}
 
 async function getUserId() {
   try {
@@ -314,5 +327,65 @@ export async function generateHealthInsights(checkIns: any[]) {
   } catch (error: any) {
     console.error("Erro ao gerar insights com OpenAI:", error);
     return `Houve um erro ao processar os insights com a OpenAI: ${error.message}`;
+  }
+}
+
+/**
+ * Retorna o relatório completo consolidado para o usuário logado.
+ * Inclui: Check-ins (últimos 30 dias), Medicamentos (com logs) e Registros de Comportamento.
+ */
+export async function getFullReportData(): Promise<FullReportData> {
+  const session = await getServerSession(authOptions) as any;
+  
+  if (!session?.user?.id) {
+    throw new Error("Não autorizado: Sessão inválida ou expirada.");
+  }
+
+  const userId = session.user.id;
+  
+  // Calcular data de 30 dias atrás
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  try {
+    const [checkIns, medications, behaviorLogs] = await Promise.all([
+      // 1. Check-ins dos últimos 30 dias
+      prisma.checkIn.findMany({
+        where: { 
+          userId,
+          date: { gte: thirtyDaysAgo }
+        },
+        orderBy: { date: 'desc' },
+      }),
+      
+      // 2. Todos os medicamentos e seus logs
+      prisma.medication.findMany({
+        where: { userId },
+        include: { 
+          logs: {
+            orderBy: { date: 'desc' }
+          } 
+        },
+        orderBy: { createdAt: 'asc' },
+      }),
+      
+      // 3. Todos os registros de comportamento
+      prisma.behaviorLog.findMany({
+        where: { userId },
+        orderBy: { timestamp: 'desc' },
+      })
+    ]);
+
+    return {
+      user: {
+        name: session.user.name || "Usuário",
+      },
+      checkIns,
+      medications,
+      behaviorLogs
+    };
+  } catch (error) {
+    console.error("Erro ao buscar dados do relatório completo:", error);
+    throw new Error("Erro ao processar os dados do relatório.");
   }
 }

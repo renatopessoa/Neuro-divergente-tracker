@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
@@ -16,6 +17,10 @@ import {
 } from 'recharts';
 import { CheckIn, BehaviorLog } from '../app/types';
 import { BehaviorTimeline } from './BehaviorTimeline';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { HealthReportPDF } from './HealthReportPDF';
+import { getFullReportData, FullReportData } from '@/app/actions';
+import { FileDown, Loader2, Printer } from 'lucide-react';
 
 interface ReportsViewProps {
   checkIns: CheckIn[];
@@ -23,6 +28,23 @@ interface ReportsViewProps {
 }
 
 export function ReportsView({ checkIns, behaviorLogs }: ReportsViewProps) {
+  const [reportData, setReportData] = useState<FullReportData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handlePrepareDownload = async () => {
+    if (reportData) return;
+    setIsLoading(true);
+    try {
+      const data = await getFullReportData();
+      setReportData(data);
+    } catch (error) {
+      console.error("Erro ao carregar dados do PDF:", error);
+      alert("Não foi possível gerar os dados para o PDF. Verifique sua conexão.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const sortedData = [...checkIns].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(-14);
   
   const chartData = sortedData.map(c => ({
@@ -49,14 +71,42 @@ export function ReportsView({ checkIns, behaviorLogs }: ReportsViewProps) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-4xl mx-auto space-y-8">
-      <header className="flex justify-between items-end print:hidden">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 print:hidden">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Relatórios de Saúde</h2>
           <p className="text-slate-500">Visão Geral de 14 Dias para o seu Médico</p>
         </div>
-        <button onClick={() => window.print()} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg">
-          Exportar PDF
-        </button>
+        
+        <div className="flex gap-2 w-full md:w-auto">
+          {reportData ? (
+            <PDFDownloadLink
+              document={<HealthReportPDF data={reportData} />}
+              fileName={`Relatorio_Mensal_${reportData.user.name?.replace(/\s+/g, '_') || 'Paciente'}_${format(new Date(), 'yyyy-MM-dd')}.pdf`}
+              className="flex items-center gap-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 px-5 py-2.5 rounded-xl transition-all shadow-sm"
+            >
+              {({ loading }) => (
+                <>
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                  {loading ? 'Gerando PDF...' : 'Baixar Relatório Mensal (PDF)'}
+                </>
+              )}
+            </PDFDownloadLink>
+          ) : (
+            <button 
+              onClick={handlePrepareDownload}
+              disabled={isLoading}
+              className="flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-5 py-2.5 rounded-xl transition-all disabled:opacity-50"
+            >
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+              {isLoading ? 'Preparando Dados...' : 'Exportar Relatório Mensal (PDF)'}
+            </button>
+          )}
+
+          <button onClick={() => window.print()} className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-800 bg-slate-100 px-4 py-2 rounded-xl transition-colors">
+            <Printer className="w-4 h-4" />
+            Imprimir Tela
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

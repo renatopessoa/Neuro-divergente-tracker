@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { Activity, Plus, Pill, BrainCircuit, LineChart, LogOut, ClipboardList } from 'lucide-react';
+import { Activity, Plus, Pill, Brain, LineChart, LogOut, ClipboardList } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
 // Components
@@ -88,7 +88,7 @@ export default function SymptomTrackerApp() {
         <NavItem icon={<Plus />} label="Check-in" tab="checkin" />
         <NavItem icon={<ClipboardList />} label="Eventos" tab="behavior" />
         <NavItem icon={<Pill />} label="Remédios" tab="meds" />
-        <NavItem icon={<BrainCircuit />} label="Insights" tab="insights" />
+        <NavItem icon={<Brain />} label="Insights" tab="insights" />
         <NavItem icon={<LineChart />} label="Relatórios" tab="reports" />
       </nav>
 
@@ -103,7 +103,7 @@ export default function SymptomTrackerApp() {
           <SidebarItem icon={<Plus />} label="Check-in Diário" tab="checkin" />
           <SidebarItem icon={<ClipboardList />} label="Registro de Eventos" tab="behavior" />
           <SidebarItem icon={<Pill />} label="Medicamentos" tab="meds" />
-          <SidebarItem icon={<BrainCircuit />} label="Insights com IA" tab="insights" />
+          <SidebarItem icon={<Brain />} label="Insights com IA" tab="insights" />
           <SidebarItem icon={<LineChart />} label="Relatórios" tab="reports" />
         </nav>
 
