@@ -64,24 +64,44 @@ export async function getCheckIns() {
 export async function saveCheckIn(data: any) {
   try {
     const userId = await getUserId();
-    if (!userId) throw new Error('Acesso não autorizado: Sessão não encontrada');
+    if (!userId) {
+      console.error("saveCheckIn: Sessão não encontrada ou expirada.");
+      throw new Error('Acesso não autorizado: Sessão não encontrada');
+    }
 
-    const { date, ...rest } = data;
+    const { date, symptoms, mood, painLevel, sleepHours, sleepQuality, dietNotes, generalNotes } = data;
+    
+    // Sanitização e tratamento de tipos
     const dateObj = date ? new Date(date) : new Date();
+    const formattedSymptoms = Array.isArray(symptoms) ? symptoms : [];
 
-    await prisma.checkIn.create({
+    const result = await prisma.checkIn.create({
       data: {
-        ...rest,
         date: dateObj,
-        user: { connect: { id: userId } },
+        mood: Number(mood) || 3,
+        painLevel: Number(painLevel) || 0,
+        sleepHours: Number(sleepHours) || 0,
+        sleepQuality: Number(sleepQuality) || 0,
+        dietNotes: dietNotes || "",
+        generalNotes: generalNotes || "",
+        symptoms: formattedSymptoms,
+        userId: userId, // Conexão direta via ID é mais performática e menos propensa a erros de nesting
       },
     });
 
     revalidatePath('/');
-    return { success: true };
+    return { success: true, id: result.id };
   } catch (error: any) {
-    console.error("Erro ao salvar check-in:", error);
-    throw new Error(error.message || "Falha ao salvar registro");
+    console.error("ERRO CRÍTICO AO SALVAR CHECK-IN:", {
+      message: error.message,
+      stack: error.stack,
+      data: data
+    });
+    // Retornamos um objeto de erro amigável
+    return { 
+      error: "Não foi possível salvar seu check-in. Por favor, tente novamente.",
+      details: error.message 
+    };
   }
 }
 
