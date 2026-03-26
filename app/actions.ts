@@ -10,7 +10,7 @@ import { authOptions } from "@/lib/auth";
 async function getUserId() {
   try {
     const session = await getServerSession(authOptions);
-    return session?.user?.id as string | undefined;
+    return session?.user?.id as any | undefined;
   } catch (error) {
     console.error("Erro ao recuperar sessão:", error);
     return undefined;
