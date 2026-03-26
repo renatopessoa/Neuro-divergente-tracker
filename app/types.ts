@@ -12,6 +12,12 @@ export interface CheckIn {
   generalNotes: string;
 }
 
+export interface MedLog {
+  id: string;
+  medId: string;
+  date: string | Date;
+}
+
 export interface Medication {
   id: string;
   name: string;
