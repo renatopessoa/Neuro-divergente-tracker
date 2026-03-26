@@ -48,7 +48,7 @@
       --surface: #0f172a; /* slate-900 */
       /* Note: very dark background for sensory rest */
       --surface-muted: #020617; /* slate-950 */
-      --text-main: #f8fafc; /* slate-50 */
+      --text-main: #000000; /* slate-50 */
       --text-muted: #94a3b8; /* slate-400 */
       --border-subtle: #1e293b; /* slate-800 */
     }
