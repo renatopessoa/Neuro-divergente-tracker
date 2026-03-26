@@ -39,9 +39,14 @@ export default function SymptomTrackerApp() {
         mood: c.mood as Mood
       }));
 
+      const formattedBehaviorLogs = dbBehaviorLogs.map((b: any) => ({
+        ...b,
+        timestamp: b.timestamp.toISOString()
+      }));
+
       setCheckIns(formattedCheckIns);
       setMedications(dbMeds as any);
-      setBehaviorLogs(dbBehaviorLogs as any);
+      setBehaviorLogs(formattedBehaviorLogs);
     } catch (e) {
       console.error('Falha ao carregar dados', e);
     } finally {
@@ -124,7 +129,7 @@ export default function SymptomTrackerApp() {
           {activeTab === 'behavior' && <BehaviorView key="behavior" setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'meds' && <MedicationsView key="meds" medications={medications} onRefresh={loadData} />}
           {activeTab === 'insights' && <InsightsView key="insights" checkIns={checkIns} />}
-          {activeTab === 'reports' && <ReportsView key="reports" checkIns={checkIns} />}
+          {activeTab === 'reports' && <ReportsView key="reports" checkIns={checkIns} behaviorLogs={behaviorLogs} />}
         </AnimatePresence>
       </main>
     </div>

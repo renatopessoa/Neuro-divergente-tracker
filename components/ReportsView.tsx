@@ -14,13 +14,15 @@ import {
   BarChart,
   Bar
 } from 'recharts';
-import { CheckIn } from '../app/types';
+import { CheckIn, BehaviorLog } from '../app/types';
+import { BehaviorTimeline } from './BehaviorTimeline';
 
 interface ReportsViewProps {
   checkIns: CheckIn[];
+  behaviorLogs: BehaviorLog[];
 }
 
-export function ReportsView({ checkIns }: ReportsViewProps) {
+export function ReportsView({ checkIns, behaviorLogs }: ReportsViewProps) {
   const sortedData = [...checkIns].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(-14);
   
   const chartData = sortedData.map(c => ({
@@ -161,6 +163,10 @@ export function ReportsView({ checkIns }: ReportsViewProps) {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="print:break-inside-avoid">
+        <BehaviorTimeline behaviorLogs={behaviorLogs} />
       </div>
 
       <div className="bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-lg print:break-inside-avoid">
