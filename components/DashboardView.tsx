@@ -65,7 +65,8 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
         </div>
         
         {/* Atalhos de Ação */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <QuickMoodTracker onSuccess={onRefresh} />
           <button 
             onClick={() => setActiveTab('checkin')}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-2xl text-sm font-semibold shadow-sm hover:bg-indigo-700 transition-all active:scale-95"
@@ -130,7 +131,6 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-6">
-          <QuickMoodTracker onSuccess={onRefresh} />
           
           <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-subtle">
             <div className="flex justify-between items-start mb-4">

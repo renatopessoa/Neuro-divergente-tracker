@@ -86,61 +86,48 @@ export function QuickMoodTracker({ onSuccess }: QuickMoodTrackerProps) {
   const levels = [1, 2, 3, 4, 5];
 
   return (
-    <motion.div 
-      layout
-      transition={{ type: 'spring', stiffness: 350, damping: 35 }}
-      className="bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden relative"
-    >
-      <AnimatePresence mode="wait">
-        {!isExpanded ? (
-          <motion.button
-            key="collapsed"
-            layoutId="tracker-container"
-            onClick={() => setIsExpanded(true)}
-            className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors text-left group"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="bg-indigo-50 p-2 rounded-2xl text-indigo-600 group-hover:scale-110 transition-transform">
-                <Zap size={18} fill="currentColor" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 leading-tight">Registro Rápido</h3>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Humor e Energia</p>
-              </div>
-            </div>
-            <div className="bg-slate-100 p-2 rounded-xl text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-              <Send size={14} />
-            </div>
-          </motion.button>
-        ) : (
-          <motion.div
-            key="expanded"
-            layoutId="tracker-container"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="p-6"
-          >
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="bg-indigo-50 p-2.5 rounded-2xl text-indigo-600">
-                  <Zap size={20} fill="currentColor" />
+    <>
+      <button
+        onClick={() => setIsExpanded(true)}
+        className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-2xl text-sm font-semibold shadow-sm hover:bg-amber-600 transition-all active:scale-95"
+      >
+        <Zap size={18} fill="currentColor" /> Registro Rápido
+      </button>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={() => setIsExpanded(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-md bg-white rounded-[32px] shadow-2xl border border-slate-100 overflow-hidden relative z-10 p-6"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="bg-indigo-50 p-2.5 rounded-2xl text-indigo-600">
+                    <Zap size={20} fill="currentColor" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight">Como está agora?</h3>
+                    <p className="text-xs text-slate-400 font-medium">Micro-Ciclo de Rastreamento</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-black text-slate-900 tracking-tight">Como está agora?</h3>
-                  <p className="text-xs text-slate-400 font-medium">Micro-Ciclo de Rastreamento</p>
-                </div>
+                <button 
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
+                  className="p-2 text-slate-300 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"
+                >
+                  <AlertCircle size={22} className="rotate-45" />
+                </button>
               </div>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
-                className="p-2 text-slate-300 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"
-              >
-                <AlertCircle size={22} className="rotate-45" />
-              </button>
-            </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Mood Selector */}
@@ -266,8 +253,9 @@ export function QuickMoodTracker({ onSuccess }: QuickMoodTrackerProps) {
               </div>
             </form>
           </motion.div>
+          </div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </>
   );
 }
