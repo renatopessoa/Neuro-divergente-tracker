@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcrypt';
-import { CheckIn, Medication, MedLog, BehaviorLog } from '@prisma/client';
+import { CheckIn, Medication, MedLog, BehaviorLog, MoodEntry } from '@prisma/client';
 
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
@@ -18,6 +18,7 @@ export interface FullReportData {
   checkIns: CheckIn[];
   medications: (Medication & { logs: MedLog[] })[];
   behaviorLogs: BehaviorLog[];
+  moodEntries: MoodEntry[];
 }
 
 async function getUserId() {
@@ -255,9 +256,14 @@ export async function generateHealthInsights(checkIns: any[]) {
   });
 
   const behaviorLogs = await getBehaviorLogs();
+  const moodEntries = await getMoodEntries();
   
   const dataString = checkIns.slice(0, 14).map(c => 
     `Data: ${format(new Date(c.date), "dd 'de' MMM", { locale: ptBR })}, Humor: ${c.mood}/5, Dor: ${c.painLevel}/10, Sono: ${c.sleepHours}h (Qualidade: ${c.sleepQuality}/5), Dieta: ${c.dietNotes}, Sintomas: ${c.symptoms.join(', ')}`
+  ).join('\n');
+
+  const moodString = moodEntries.slice(0, 20).map(m =>
+    `Hora: ${format(new Date(m.createdAt), "dd/MM HH:mm")}, Humor: ${m.moodLevel}/5, Energia: ${m.energyLevel}/5, Notas: ${m.note || ''}`
   ).join('\n');
 
   const behaviorString = behaviorLogs.slice(0, 14).map(b =>
@@ -277,22 +283,24 @@ export async function generateHealthInsights(checkIns: any[]) {
   ).join('\n');
 
   const prompt = `
- const prompt = 
     Você é o Prisma AI, um Analista de Saúde Digital especializado em Neurodivergência. Sua função é processar dados quantitativos e qualitativos para oferecer suporte clínico, empático e preventivo.
 
     ### DADOS PARA ANÁLISE (Últimos 14 dias):
     DADOS DE CHECK-IN:
     ${dataString}
 
+    ### DADOS DE OSCILAÇÃO INTRA-DIA (Micro-Ciclo):
+    ${moodString || 'Nenhum registro.'}
+
     DADOS DE COMPORTAMENTO E DESREGULAÇÃO:
     ${behaviorString || 'Nenhum evento registrado no período.'}
 
     ### SUA TAREFA:
-    Analise os dados acima procurando por correlações entre as variáveis (Sono, Humor, Sobrecarga Sensorial e Eventos). Siga estas diretrizes:
+    Analise os dados acima procurando por correlações entre as variáveis (Sono, Humor, Sobrecarga Sensorial, Energia e Eventos). Siga estas diretrizes:
 
     1. **Análise de Tendências (Resumo):** Identifique a "temperatura" geral do período. O usuário está em uma curva de estabilidade ou de exaustão progressiva? Use um tom encorajador, mas realista.
 
-    2. **Mapeamento de Gatilhos e Correlações:** Seja específico. Procure padrões como "Baixa qualidade de sono aumenta a intensidade das crises" ou "Fatores de vulnerabilidade específicos que precedem a sobrecarga sensorial".
+    2. **Mapeamento de Gatilhos e Correlações:** Seja específico. Procure padrões como "Baixa qualidade de sono aumenta a intensidade das crises" ou "Fatores de vulnerabilidade específicos que precedem a sobrecarga sensorial". **Analise especificamente se quedas no nível de 'Energia' (Micro-Ciclo) coincidem ou precedem as crises descritas no BehaviorLog.**
 
     3. **Eficácia de Regulação:** Identifique quais estratégias de manejo (copingStrategies) tiveram os maiores índices de eficácia.
 
@@ -306,11 +314,6 @@ export async function generateHealthInsights(checkIns: any[]) {
     Ao final, inclua: "Estes insights são gerados por IA com base nos seus registros e não substituem o acompanhamento médico ou terapêutico profissional."
 
     Responda em Português do Brasil, mantendo um tom profissional, clínico e acolhedor.
-  ;
-    ${dataString}
-    
-    Dados de Rastreamento de Comportamento e Desregulação (últimos 14 dias):
-    ${behaviorString || 'Nenhum evento registrado.'}
   `;
 
   try {
@@ -348,7 +351,7 @@ export async function getFullReportData(): Promise<FullReportData> {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   try {
-    const [checkIns, medications, behaviorLogs] = await Promise.all([
+    const [checkIns, medications, behaviorLogs, moodEntries] = await Promise.all([
       // 1. Check-ins dos últimos 30 dias
       prisma.checkIn.findMany({
         where: { 
@@ -373,6 +376,15 @@ export async function getFullReportData(): Promise<FullReportData> {
       prisma.behaviorLog.findMany({
         where: { userId },
         orderBy: { timestamp: 'desc' },
+      }),
+
+      // 4. Registros de humor dos últimos 30 dias
+      prisma.moodEntry.findMany({
+        where: { 
+          userId,
+          createdAt: { gte: thirtyDaysAgo }
+        },
+        orderBy: { createdAt: 'desc' },
       })
     ]);
 
@@ -382,10 +394,50 @@ export async function getFullReportData(): Promise<FullReportData> {
       },
       checkIns,
       medications,
-      behaviorLogs
+      behaviorLogs,
+      moodEntries
     };
   } catch (error) {
     console.error("Erro ao buscar dados do relatório completo:", error);
     throw new Error("Erro ao processar os dados do relatório.");
+  }
+}
+
+export async function saveQuickMood(data: { moodLevel: number, energyLevel: number, note?: string }) {
+  try {
+    const userId = await getUserId();
+    if (!userId) {
+      throw new Error('Acesso não autorizado');
+    }
+
+    const result = await prisma.moodEntry.create({
+      data: {
+        moodLevel: Number(data.moodLevel),
+        energyLevel: Number(data.energyLevel),
+        note: data.note || "",
+        userId,
+      },
+    });
+
+    revalidatePath('/');
+    return { success: true, id: result.id };
+  } catch (error: any) {
+    console.error("Erro ao salvar quick mood:", error);
+    return { error: "Não foi possível salvar seu humor." };
+  }
+}
+
+export async function getMoodEntries() {
+  try {
+    const userId = await getUserId();
+    if (!userId) return [];
+
+    return await prisma.moodEntry.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error("Erro ao buscar mood entries:", error);
+    return [];
   }
 }

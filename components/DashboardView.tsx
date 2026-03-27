@@ -5,6 +5,7 @@ import { Activity, Pill, Check, ChevronRight, ClipboardList } from 'lucide-react
 import { format, isSameDay, parseISO, subDays, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 import { MoodIcon } from './MoodIcon';
+import { QuickMoodTracker } from './QuickMoodTracker';
 import { CheckIn, Medication } from '../app/types';
 import { toggleMedLog } from '../app/actions';
 import { GamificationCard } from './GamificationCard';
@@ -129,6 +130,8 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-6">
+          <QuickMoodTracker onSuccess={onRefresh} />
+          
           <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-subtle">
             <div className="flex justify-between items-start mb-4">
               <h3 className="font-semibold text-text-main flex items-center gap-2"><Activity size={18} className="text-primary-500"/> Hoje</h3>
