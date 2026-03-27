@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'motion/react';
-import { Moon } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Moon, CheckCircle2, Star, Sparkles } from 'lucide-react';
 import { MoodIcon } from './MoodIcon';
 import { Mood } from '../app/types';
 import { saveCheckIn } from '../app/actions';
@@ -12,6 +12,14 @@ interface CheckInViewProps {
   onRefresh: () => Promise<void>;
 }
 
+const MOTIVATIONAL_MESSAGES = [
+  "Incrível! Cuidar de si mesmo é o primeiro passo para o bem-estar.",
+  "Check-in concluído! Sua constância é sua maior força.",
+  "Parabéns por dedicar um tempo para se ouvir hoje.",
+  "Registro salvo! Pequenos passos levam a grandes mudanças.",
+  "Você está fazendo um ótimo trabalho acompanhando sua jornada!"
+];
+
 export function CheckInView({ setActiveTab, onRefresh }: CheckInViewProps) {
   const [mood, setMood] = useState<number>(3);
   const [pain, setPain] = useState<number>(0);
@@ -20,8 +28,12 @@ export function CheckInView({ setActiveTab, onRefresh }: CheckInViewProps) {
   const [dietNotes, setDietNotes] = useState('');
   const [symptoms, setSymptoms] = useState<string>('');
   const [generalNotes, setGeneralNotes] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [randomMessage] = useState(() => MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)]);
 
   const handleSave = async () => {
+    setIsSaving(true);
     const newCheckIn = {
       date: new Date().toISOString(),
       mood: mood as Mood,
@@ -33,10 +45,69 @@ export function CheckInView({ setActiveTab, onRefresh }: CheckInViewProps) {
       generalNotes
     };
     
-    await saveCheckIn(newCheckIn);
-    await onRefresh();
-    setActiveTab('dashboard');
+    try {
+      await saveCheckIn(newCheckIn);
+      await onRefresh();
+      setShowSuccess(true);
+      // Aguardar 2 segundos para o usuário ver a mensagem de sucesso
+      setTimeout(() => {
+        setActiveTab('dashboard');
+      }, 2500);
+    } catch (error) {
+      console.error("Erro ao salvar check-in:", error);
+      setIsSaving(false);
+    }
   };
+
+  if (showSuccess) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }} 
+        animate={{ opacity: 1, scale: 1 }} 
+        className="max-w-md mx-auto h-[60vh] flex flex-col items-center justify-center text-center space-y-6"
+      >
+        <div className="relative">
+          <motion.div 
+            initial={{ scale: 0 }} 
+            animate={{ scale: 1 }} 
+            transition={{ type: "spring", damping: 10, stiffness: 100 }}
+            className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-100"
+          >
+            <CheckCircle2 size={48} />
+          </motion.div>
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0, 1, 0],
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute -top-4 -right-4 text-amber-400"
+          >
+            <Sparkles size={32} />
+          </motion.div>
+        </div>
+        
+        <div className="space-y-2">
+          <h3 className="text-2xl font-bold text-slate-900">Tudo pronto!</h3>
+          <p className="text-slate-600 font-medium px-4">
+            {randomMessage}
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          {[1, 2, 3].map(i => (
+            <motion.div
+              key={i}
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+            >
+              <Star className="text-amber-400 fill-amber-400" size={16} />
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-2xl mx-auto space-y-8">
@@ -131,8 +202,12 @@ export function CheckInView({ setActiveTab, onRefresh }: CheckInViewProps) {
           </div>
         </section>
 
-        <button onClick={handleSave} className="w-full bg-indigo-600 text-white py-4 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
-          Salvar Check-in
+        <button 
+          onClick={handleSave} 
+          disabled={isSaving}
+          className="w-full bg-indigo-600 text-white py-4 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50"
+        >
+          {isSaving ? 'Salvando...' : 'Salvar Check-in'}
         </button>
       </div>
     </motion.div>

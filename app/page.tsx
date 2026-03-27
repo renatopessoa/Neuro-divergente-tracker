@@ -126,7 +126,7 @@ export default function SymptomTrackerApp() {
         <AnimatePresence mode="wait">
           {activeTab === 'dashboard' && <DashboardView key="dashboard" checkIns={checkIns} medications={medications} behaviorLogs={behaviorLogs} setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'checkin' && <CheckInView key="checkin" setActiveTab={setActiveTab} onRefresh={loadData} />}
-          {activeTab === 'behavior' && <BehaviorView key="behavior" setActiveTab={setActiveTab} onRefresh={loadData} />}
+          {activeTab === 'behavior' && <BehaviorView key="behavior" behaviorLogs={behaviorLogs} setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'meds' && <MedicationsView key="meds" medications={medications} onRefresh={loadData} />}
           {activeTab === 'insights' && <InsightsView key="insights" checkIns={checkIns} />}
           {activeTab === 'reports' && <ReportsView key="reports" checkIns={checkIns} behaviorLogs={behaviorLogs} />}

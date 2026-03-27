@@ -2,11 +2,12 @@
 
 import { motion } from 'motion/react';
 import { Activity, Pill, Check, ChevronRight, ClipboardList } from 'lucide-react';
-import { format, isSameDay, parseISO } from 'date-fns';
+import { format, isSameDay, parseISO, subDays, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 import { MoodIcon } from './MoodIcon';
 import { CheckIn, Medication } from '../app/types';
 import { toggleMedLog } from '../app/actions';
+import { GamificationCard } from './GamificationCard';
 
 interface DashboardViewProps {
   checkIns: CheckIn[];
@@ -37,6 +38,15 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
     await toggleMedLog(medId, taken);
     await onRefresh();
   };
+
+  // Cálculo de eventos na última semana
+  const lastWeek = subDays(today, 7);
+  const weeklyEvents = behaviorLogs.filter((b: any) => 
+    b.timestamp && isAfter(new Date(b.timestamp), lastWeek)
+  );
+  
+  const eventsCount = weeklyEvents.length;
+  const highIntensityEvents = weeklyEvents.filter((e: any) => e.intensity >= 7).length;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
@@ -77,6 +87,46 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
       </header>
 
       {/* Correção aplicada aqui: Removido lg:grid-cols-3 e mantido o limite de 2 colunas */}
+      {/* Resumo Semanal de Eventos */}
+      <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-lg flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
+        <div className="z-10">
+          <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
+            <ClipboardList className="text-indigo-400" /> Resumo dos Últimos 7 Dias
+          </h3>
+          <p className="text-slate-400 text-sm">Visão geral do seu bem-estar comportamental.</p>
+        </div>
+        
+        <div className="flex gap-8 z-10 w-full md:w-auto justify-around md:justify-end">
+          <div className="text-center">
+            <p className="text-3xl font-bold text-white">{eventsCount}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Total de Eventos</p>
+          </div>
+          <div className="w-px h-10 bg-slate-800 self-center hidden md:block" />
+          <div className="text-center">
+            <p className="text-3xl font-bold text-rose-500">{highIntensityEvents}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Crises Intensas</p>
+          </div>
+          <div className="w-px h-10 bg-slate-800 self-center hidden md:block" />
+          <div className="text-center">
+            <p className="text-3xl font-bold text-indigo-400">
+              {eventsCount > 0 ? (eventsCount / 7).toFixed(1) : 0}
+            </p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Média Diária</p>
+          </div>
+        </div>
+
+        {/* Elemento Decorativo de Fundo */}
+        <div className="absolute -right-10 -bottom-10 opacity-10">
+          <Activity size={180} />
+        </div>
+      </div>
+
+      <GamificationCard 
+        checkIns={checkIns} 
+        medicationsCount={medications.length} 
+        behaviorLogsCount={behaviorLogs.length} 
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-6">
           <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-subtle">
