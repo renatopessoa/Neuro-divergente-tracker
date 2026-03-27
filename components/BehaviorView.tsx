@@ -30,10 +30,10 @@ interface BehaviorViewProps {
   onRefresh: () => Promise<void>;
 }
 
-const COMMON_VULNERABILITIES = ['Fome', 'Sede', 'Sono inadequado', 'Fadiga', 'Dor/Desconforto físico', 'Excesso de demandas prévias'];
+const COMMON_VULNERABILITIES = ['Fome', 'Sede', 'Cansaço', 'Calor', 'Frio', 'Sono inadequado', 'Fadiga', 'Dor/Desconforto físico', 'Excesso de demandas prévias'];
 const COMMON_TRIGGERS = ['Barulho alto', 'Multidão/Aglomeração', 'Mudança na rotina', 'Receber um "Não"', 'Transição de atividade', 'Luz intensa', 'Cheiros fortes', 'Sobrecarga sensorial'];
 const COMMON_STRATEGIES = ['Respiração profunda', 'Isolamento temporário', 'Abafo de ruído', 'Redirecionamento de atenção', 'Pressão profunda', 'Música', 'Contagem'];
-const SENSORY_OVERLOAD_TYPES = ['Visual', 'Auditiva', 'Tátil', 'Olfativa', 'Proprioceptiva', 'Vestibular', 'Gustativa'];
+const SENSORY_OVERLOAD_TYPES = ['Sobrecarga Visual', 'Sobrecarga Auditiva', 'Sobrecarga Tátil', 'Sobrecarga Olfativa', 'Sobrecarga Proprioceptiva', 'Sobrecarga Vestibular', 'Sobrecarga Gustativa', 'Misofonia', 'Interocepção'];
 const EXECUTIVE_FUNCTION_IMPACTS = ['Iniciação de tarefas', 'Memória de trabalho', 'Foco/Atenção', 'Organização', 'Planejamento', 'Flexibilidade mental'];
 
 export function BehaviorView({ behaviorLogs, setActiveTab, onRefresh }: BehaviorViewProps) {
