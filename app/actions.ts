@@ -314,23 +314,31 @@ export async function generateHealthInsights(checkIns: any[]) {
     Ao final, inclua: "Estes insights são gerados por IA com base nos seus registros e não substituem o acompanhamento médico ou terapêutico profissional."
 
     Responda em Português do Brasil, mantendo um tom profissional, clínico e acolhedor.
+
+    ### FORMATO DE RESPOSTA OBRIGATÓRIO:
+  Retorne a resposta EXCLUSIVAMENTE em formato JSON, sem blocos de código Markdown (como \`\`\`json), seguindo exatamente esta estrutura:
+  [
+    { "title": "Análise de Tendências (Resumo)", "content": "...", "type": "trend" },
+    { "title": "Mapeamento de Gatilhos e Correlações", "content": "...", "type": "triggers" },
+    { "title": "Eficácia de Regulação", "content": "...", "type": "regulation" },
+    { "title": "Ponte de Comunicação (Tradução Neurotípica)", "content": "...", "type": "communication" },
+    { "title": "Prevenção Baseada em Sinais", "content": "...", "type": "prevention" }
+  ]
+
   `;
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Ou "gpt-4-turbo" / "gpt-3.5-turbo"
-      messages: [
-        { role: "system", content: "Você é um assistente especializado em neurodiversidade." },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.7,
-    });
+ try {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: prompt }],
+  });
 
-    return response.choices[0].message.content;
-  } catch (error: any) {
-    console.error("Erro ao gerar insights com OpenAI:", error);
-    return `Houve um erro ao processar os insights com a OpenAI: ${error.message}`;
-  }
+  const content = response.choices[0].message.content || "[]";
+  return JSON.parse(content); // Retorna o array de objetos em vez de uma string
+} catch (error) {
+  console.error("Erro ao gerar/parsear insights:", error);
+  return []; // Retorna array vazio em caso de erro
+}
 }
 
 /**
