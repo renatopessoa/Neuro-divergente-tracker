@@ -27,7 +27,7 @@ export function GamificationCard({ checkIns, medicationsCount, behaviorLogsCount
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-2">
               <Flame size={20} className="text-orange-200 fill-orange-200" />
-              <span className="text-sm font-bold uppercase tracking-wider opacity-80">Sequencia de Registro</span>
+              <span className="text-sm font-bold uppercase tracking-wider opacity-80">Sequência de Registro</span>
             </div>
             <div className="flex items-baseline gap-2">
               <h4 className="text-5xl font-black">{streak}</h4>
