@@ -16,6 +16,7 @@ import { BehaviorView } from '@/components/BehaviorView';
 // Types & Actions
 import { CheckIn, Medication, Mood } from './types';
 import { getCheckIns, getMedications, getBehaviorLogs } from './actions';
+import { setupNotifications, checkSleepPatternAlert, sendLocalNotification, scheduleMedicationReminders } from '@/lib/notifications';
 
 export default function SymptomTrackerApp() {
   const { data: session } = useSession();
@@ -47,6 +48,15 @@ export default function SymptomTrackerApp() {
       setCheckIns(formattedCheckIns);
       setMedications(dbMeds as any);
       setBehaviorLogs(formattedBehaviorLogs);
+
+      // Verificação de alertas de sono
+      const alertMessage = checkSleepPatternAlert(formattedCheckIns);
+      if (alertMessage) {
+        sendLocalNotification("Alerta de Bem-estar 🧠", alertMessage);
+      }
+
+      // Agendamento de lembretes de medicação
+      scheduleMedicationReminders(dbMeds as any);
     } catch (e) {
       console.error('Falha ao carregar dados', e);
     } finally {
@@ -55,7 +65,10 @@ export default function SymptomTrackerApp() {
   };
 
   useEffect(() => {
-    if (session) loadData();
+    if (session) {
+      loadData();
+      setupNotifications();
+    }
   }, [session]);
 
   if (!isLoaded) return <div className="min-h-screen flex items-center justify-center bg-surface text-text-muted">Carregando...</div>;
