@@ -91,7 +91,7 @@ export function sendLocalNotification(title: string, body: string) {
         badge: "/assets/prisma-icon.png",
         vibrate: [200, 100, 200],
         tag: `med-${title.replace(/\s+/g, '-')}` // Evitar notificações duplicadas idênticas
-      });
+      } as NotificationOptions & { vibrate: number[] });
     }).catch(() => {
       // Fallback para notificação simples
       new Notification(title, {
