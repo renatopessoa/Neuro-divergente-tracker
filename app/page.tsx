@@ -15,7 +15,7 @@ import { BehaviorView } from '@/components/BehaviorView';
 
 // Types & Actions
 import { CheckIn, Medication, Mood } from './types';
-import { getCheckIns, getMedications, getBehaviorLogs } from './actions';
+import { getCheckIns, getMedications, getBehaviorLogs, getMoodEntries } from './actions';
 import { setupNotifications, checkSleepPatternAlert, sendLocalNotification, scheduleMedicationReminders } from '@/lib/notifications';
 
 export default function SymptomTrackerApp() {
@@ -24,16 +24,18 @@ export default function SymptomTrackerApp() {
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [medications, setMedications] = useState<Medication[]>([]);
   const [behaviorLogs, setBehaviorLogs] = useState<any[]>([]);
+  const [moodEntries, setMoodEntries] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const loadData = async () => {
     try {
-      const [dbCheckIns, dbMeds, dbBehaviorLogs] = await Promise.all([
+      const [dbCheckIns, dbMeds, dbBehaviorLogs, dbMoodEntries] = await Promise.all([
         getCheckIns(),
         getMedications(),
-        getBehaviorLogs()
+        getBehaviorLogs(),
+        getMoodEntries()
       ]);
-      
+
       const formattedCheckIns = dbCheckIns.map((c: any) => ({
         ...c,
         date: c.date.toISOString(),
@@ -48,7 +50,8 @@ export default function SymptomTrackerApp() {
       setCheckIns(formattedCheckIns);
       setMedications(dbMeds as any);
       setBehaviorLogs(formattedBehaviorLogs);
-
+      setMoodEntries(dbMoodEntries);
+      setIsLoaded(true);
       // Verificação de alertas de sono
       const alertMessage = checkSleepPatternAlert(formattedCheckIns);
       if (alertMessage) {
@@ -137,7 +140,7 @@ export default function SymptomTrackerApp() {
       {/* Main Content */}
       <main className="p-4 md:p-8 max-w-5xl mx-auto">
         <AnimatePresence mode="wait">
-          {activeTab === 'dashboard' && <DashboardView key="dashboard" checkIns={checkIns} medications={medications} behaviorLogs={behaviorLogs} setActiveTab={setActiveTab} onRefresh={loadData} />}
+          {activeTab === 'dashboard' && <DashboardView key="dashboard" checkIns={checkIns} medications={medications} behaviorLogs={behaviorLogs} moodEntries={moodEntries} setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'checkin' && <CheckInView key="checkin" setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'behavior' && <BehaviorView key="behavior" behaviorLogs={behaviorLogs} setActiveTab={setActiveTab} onRefresh={loadData} />}
           {activeTab === 'meds' && <MedicationsView key="meds" medications={medications} onRefresh={loadData} />}

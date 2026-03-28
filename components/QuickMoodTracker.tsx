@@ -8,10 +8,12 @@ import { saveQuickMood } from '@/app/actions';
 
 interface QuickMoodTrackerProps {
   onSuccess?: () => void;
+  onEmergencyLog?: () => void;
 }
 
-export function QuickMoodTracker({ onSuccess }: QuickMoodTrackerProps) {
+export function QuickMoodTracker({ onSuccess, onEmergencyLog }: QuickMoodTrackerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showEmergencyOverlay, setShowEmergencyOverlay] = useState(false);
   const [moodLevel, setMoodLevel] = useState<number>(3);
   const [energyLevel, setEnergyLevel] = useState<number>(5);
   const [note, setNote] = useState('');
@@ -62,6 +64,8 @@ export function QuickMoodTracker({ onSuccess }: QuickMoodTrackerProps) {
         setStatus('success');
         setMessage('Registro salvo com sucesso!');
         
+        const lastEnergy = energyLevel;
+
         // Reset states
         setNote('');
         setMoodLevel(3);
@@ -69,9 +73,14 @@ export function QuickMoodTracker({ onSuccess }: QuickMoodTrackerProps) {
         
         // Auto-close after showing success message
         setTimeout(() => {
-          setIsExpanded(false);
           setStatus('idle');
-          if (onSuccess) onSuccess();
+          if (lastEnergy <= 2) {
+             setIsExpanded(false);
+             setShowEmergencyOverlay(true);
+          } else {
+             setIsExpanded(false);
+             if (onSuccess) onSuccess();
+          }
         }, 1500);
       } else {
         throw new Error('error' in result ? result.error : 'Erro desconhecido');
@@ -84,6 +93,7 @@ export function QuickMoodTracker({ onSuccess }: QuickMoodTrackerProps) {
   };
 
   const levels = [1, 2, 3, 4, 5];
+  const isCritical = energyLevel <= 2;
 
   return (
     <>
@@ -218,7 +228,11 @@ export function QuickMoodTracker({ onSuccess }: QuickMoodTrackerProps) {
                       exit={{ opacity: 0, y: -10 }}
                       type="submit"
                       disabled={status === 'loading'}
-                      className="w-full bg-slate-900 text-white py-4 rounded-[20px] font-bold flex items-center justify-center gap-2 hover:bg-black transition-all active:scale-[0.98] disabled:opacity-70 shadow-lg shadow-slate-200"
+                      className={`w-full py-4 rounded-[20px] font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 shadow-lg ${
+                        isCritical 
+                          ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-200' 
+                          : 'bg-slate-900 hover:bg-black text-white shadow-slate-200'
+                      }`}
                     >
                       {status === 'loading' ? (
                         <>
@@ -226,7 +240,7 @@ export function QuickMoodTracker({ onSuccess }: QuickMoodTrackerProps) {
                         </>
                       ) : (
                         <>
-                          <Send size={16} /> Salvar Registro
+                          <Send size={16} /> {isCritical ? 'Salvar e Ver Ajuda' : 'Salvar Registro'}
                         </>
                       )}
                     </motion.button>
@@ -253,6 +267,63 @@ export function QuickMoodTracker({ onSuccess }: QuickMoodTrackerProps) {
               </div>
             </form>
           </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Emergency Overlay */}
+      <AnimatePresence>
+        {showEmergencyOverlay && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="relative z-10 w-full max-w-md p-6 space-y-6 flex flex-col items-center text-center"
+            >
+              <h2 className="text-3xl font-black text-rose-500 mb-4">Plano de Emergência</h2>
+              
+              <div className="space-y-4 w-full">
+                <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="bg-slate-800 p-6 rounded-2xl text-xl font-medium text-white shadow-lg border border-slate-700">
+                  1. Vá para um lugar silencioso e escuro
+                </motion.div>
+                
+                <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="bg-slate-800 p-6 rounded-2xl text-xl font-medium text-white shadow-lg border border-slate-700">
+                  2. Coloque seus fones de ouvido com cancelamento de ruído
+                </motion.div>
+                
+                <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="bg-slate-800 p-6 rounded-2xl text-xl font-medium text-white shadow-lg border border-slate-700">
+                  3. Respire fundo 5 vezes focando apenas no ar entrando e saindo
+                </motion.div>
+              </div>
+
+              <div className="pt-8 w-full">
+                <button
+                  onClick={() => {
+                    setShowEmergencyOverlay(false);
+                    const wantsToLog = window.confirm("Deseja transformar este momento em um Registro de Evento (Behavior Log) para sua próxima análise de IA?");
+                    if (wantsToLog && onEmergencyLog) {
+                      sessionStorage.setItem('emergencyBehaviorLog', JSON.stringify({
+                        mood: moodLevel,
+                        energy: energyLevel,
+                        timestamp: new Date().toISOString()
+                      }));
+                      onEmergencyLog();
+                    }
+                    if (onSuccess) onSuccess();
+                  }}
+                  className="w-full py-4 rounded-2xl bg-white text-slate-900 font-bold text-lg hover:bg-slate-100 transition-all active:scale-95"
+                >
+                  Estou melhor
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>

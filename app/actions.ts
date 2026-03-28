@@ -16,7 +16,7 @@ export interface FullReportData {
     name: string | null;
   };
   checkIns: CheckIn[];
-  medications: (Medication & { logs: MedLog[] })[];
+  medications: (Medication & { logs: MedLog[], adherenceRate?: number })[];
   behaviorLogs: BehaviorLog[];
   moodEntries: MoodEntry[];
 }
@@ -396,12 +396,27 @@ export async function getFullReportData(): Promise<FullReportData> {
       })
     ]);
 
+    const medicationsWithAdherence = medications.map(med => {
+      const recentLogs = med.logs.filter(log => log.date >= thirtyDaysAgo);
+      const match = med.frequency.match(/\d+/);
+      const freq = match ? parseInt(match[0], 10) : 1;
+      
+      const totalExpectedDoses = 30 * freq;
+      let adherenceRate = totalExpectedDoses > 0 ? (recentLogs.length / totalExpectedDoses) * 100 : 0;
+      if (adherenceRate > 100) adherenceRate = 100;
+
+      return {
+        ...med,
+        adherenceRate
+      };
+    });
+
     return {
       user: {
         name: session.user.name || "Usuário",
       },
       checkIns,
-      medications,
+      medications: medicationsWithAdherence,
       behaviorLogs,
       moodEntries
     };

@@ -14,11 +14,12 @@ interface DashboardViewProps {
   checkIns: CheckIn[];
   medications: Medication[];
   behaviorLogs: any[];
+  moodEntries?: any[];
   setActiveTab: (tab: string) => void;
   onRefresh: () => Promise<void>;
 }
 
-export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTab, onRefresh }: DashboardViewProps) {
+export function DashboardView({ checkIns, medications, behaviorLogs, moodEntries = [], setActiveTab, onRefresh }: DashboardViewProps) {
   const today = new Date();
   const todayCheckIn = checkIns.find((c: CheckIn) => isSameDay(parseISO(c.date), today));
   const todayBehaviorLogs = behaviorLogs.filter((b: any) => b.timestamp && isSameDay(new Date(b.timestamp), today));
@@ -46,7 +47,11 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
     b.timestamp && isAfter(new Date(b.timestamp), lastWeek)
   );
   
-  const eventsCount = weeklyEvents.length;
+  const weeklyMoodEntries = moodEntries.filter((m: any) => 
+    m.createdAt && isAfter(new Date(m.createdAt), lastWeek)
+  );
+
+  const eventsCount = weeklyEvents.length + weeklyMoodEntries.length;
   const highIntensityEvents = weeklyEvents.filter((e: any) => e.intensity >= 7).length;
 
   return (
@@ -66,7 +71,7 @@ export function DashboardView({ checkIns, medications, behaviorLogs, setActiveTa
         
         {/* Atalhos de Ação */}
         <div className="flex flex-wrap gap-2 items-center">
-          <QuickMoodTracker onSuccess={onRefresh} />
+          <QuickMoodTracker onSuccess={onRefresh} onEmergencyLog={() => setActiveTab('behavior')} />
           <button 
             onClick={() => setActiveTab('checkin')}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-2xl text-sm font-semibold shadow-sm hover:bg-indigo-700 transition-all active:scale-95"

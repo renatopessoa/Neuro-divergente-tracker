@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveBehaviorLog } from '../app/actions';
 import { 
@@ -70,6 +70,22 @@ export function BehaviorView({ behaviorLogs, setActiveTab, onRefresh }: Behavior
   const [notes, setNotes] = useState('');
   const [executiveFunctionImpact, setExecutiveFunctionImpact] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const emergencyData = sessionStorage.getItem('emergencyBehaviorLog');
+    if (emergencyData) {
+      try {
+        const parsed = JSON.parse(emergencyData);
+        setViewMode('add');
+        if (parsed.timestamp) {
+          setTimestamp(parsed.timestamp.slice(0, 16));
+        }
+        setNotes(`Contexto de Registro: Queda brusca de energia detectada.\nEnergia: ${parsed.energy}/10\nHumor: ${parsed.mood}/5`);
+        setEventType('Desligamento (Shutdown)');
+        sessionStorage.removeItem('emergencyBehaviorLog');
+      } catch (e) {}
+    }
+  }, []);
 
   // Timeline Filtering logic
   const filteredLogs = behaviorLogs.filter(log => {

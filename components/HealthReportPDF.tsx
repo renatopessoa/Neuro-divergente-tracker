@@ -220,14 +220,17 @@ export const HealthReportPDF: React.FC<HealthReportPDFProps> = ({ data }) => {
             <View style={styles.table}>
               {/* Header da Tabela de Medicamentos */}
               <View style={styles.tableRow}>
-                <View style={[styles.tableColHeader, { width: '40%' }]}>
+                <View style={[styles.tableColHeader, { width: '35%' }]}>
                   <Text style={styles.tableCellHeader}>Medicamento / Dosagem</Text>
                 </View>
-                <View style={[styles.tableColHeader, { width: '30%' }]}>
+                <View style={[styles.tableColHeader, { width: '25%' }]}>
                   <Text style={styles.tableCellHeader}>Frequência / Horário</Text>
                 </View>
-                <View style={[styles.tableColHeader, { width: '30%' }]}>
-                  <Text style={styles.tableCellHeader}>Doses Tomadas (30d)</Text>
+                <View style={[styles.tableColHeader, { width: '20%' }]}>
+                  <Text style={styles.tableCellHeader}>Doses Tomadas</Text>
+                </View>
+                <View style={[styles.tableColHeader, { width: '20%' }]}>
+                  <Text style={styles.tableCellHeader}>Adesão</Text>
                 </View>
               </View>
 
@@ -241,22 +244,35 @@ export const HealthReportPDF: React.FC<HealthReportPDFProps> = ({ data }) => {
                   new Date(log.date) >= thirtyDaysAgo
                 ).length;
 
+                const rate = med.adherenceRate || 0;
+                let rateColor = '#c53030'; // Red
+                if (rate >= 90) rateColor = '#2f855a'; // Green
+                else if (rate >= 70) rateColor = '#d69e2e'; // Yellow
+
                 return (
                   <View key={med.id} style={styles.tableRow}>
-                    <View style={[styles.tableCol, { width: '40%' }]}>
+                    <View style={[styles.tableCol, { width: '35%' }]}>
                       <Text style={[styles.tableCellLeft, { fontWeight: 'bold' }]}>
                         {med.name} ({med.dosage})
                       </Text>
                     </View>
-                    <View style={[styles.tableCol, { width: '30%' }]}>
+                    <View style={[styles.tableCol, { width: '25%' }]}>
                       <Text style={styles.tableCell}>
                         {med.frequency} às {med.time}
                       </Text>
                     </View>
-                    <View style={[styles.tableCol, { width: '30%' }]}>
-                      <Text style={[styles.tableCell, { fontWeight: 'bold', color: dosesCount > 0 ? '#2f855a' : '#c53030' }]}>
+                    <View style={[styles.tableCol, { width: '20%' }]}>
+                      <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>
                         {dosesCount} doses
                       </Text>
+                    </View>
+                    <View style={[styles.tableCol, { width: '20%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingVertical: 4 }]}>
+                      <Text style={{ fontSize: 9, fontWeight: 'bold', color: rateColor, marginBottom: 2 }}>
+                        {rate.toFixed(1)}%
+                      </Text>
+                      <View style={{ width: '80%', height: 4, backgroundColor: '#edf2f7', borderRadius: 2 }}>
+                        <View style={{ width: `${rate}%`, height: '100%', backgroundColor: rateColor, borderRadius: 2 }} />
+                      </View>
                     </View>
                   </View>
                 );
