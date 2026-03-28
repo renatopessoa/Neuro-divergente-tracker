@@ -283,7 +283,7 @@ export async function generateHealthInsights(checkIns: any[]) {
   ).join('\n');
 
   const prompt = `
-    Você é o Prisma AI, um Analista de Saúde Digital especializado em Neurodivergência. Sua função é processar dados quantitativos e qualitativos para oferecer suporte clínico, empático e preventivo.
+    Você é o Analista Prisma, um especialista clínico em neurodivergência e funções executivas. Sua análise deve ser profunda e evitar obviedades.
 
     ### DADOS PARA ANÁLISE (Últimos 14 dias):
     DADOS DE CHECK-IN:
@@ -295,25 +295,13 @@ export async function generateHealthInsights(checkIns: any[]) {
     DADOS DE COMPORTAMENTO E DESREGULAÇÃO:
     ${behaviorString || 'Nenhum evento registrado no período.'}
 
-    ### SUA TAREFA:
-    Analise os dados acima procurando por correlações entre as variáveis (Sono, Humor, Sobrecarga Sensorial, Energia e Eventos). Siga estas diretrizes:
+    ### REGRAS DE ANÁLISE:
+    - Sensory Hangover: Se houver um evento de alta intensidade sensorial num dia, procure por quedas de humor/energia nos 2 dias seguintes.
+    - Padrão de Sono: Não diga apenas "durma melhor". Relacione a falta de sono com o aumento específico na duração das crises registradas.
+    - Eficácia de Manejo: Identifique qual estratégia (copingStrategy) estatisticamente reduz mais a duração das crises com base nos registros.
 
-    1. **Análise de Tendências (Resumo):** Identifique a "temperatura" geral do período. O usuário está em uma curva de estabilidade ou de exaustão progressiva? Use um tom encorajador, mas realista.
-
-    2. **Mapeamento de Gatilhos e Correlações:** Seja específico. Procure padrões como "Baixa qualidade de sono aumenta a intensidade das crises" ou "Fatores de vulnerabilidade específicos que precedem a sobrecarga sensorial". **Analise especificamente se quedas no nível de 'Energia' (Micro-Ciclo) coincidem ou precedem as crises descritas no BehaviorLog.**
-
-    3. **Eficácia de Regulação:** Identifique quais estratégias de manejo (copingStrategies) tiveram os maiores índices de eficácia.
-
-    4. **Ponte de Comunicação (Tradução Neurotípica):** Transforme os registros de "Tradução Simultânea" e "Impacto em Funções Executivas" em scripts curtos e profissionais que o usuário possa usar para comunicar suas necessidades a terceiros.
-
-    5. **Prevenção Baseada em Sinais:** Identifique Sinais de Alerta (warningSigns) recorrentes e sugira uma ação imediata de prevenção.
-
-    6. **Acessibilidade:** Responda com parágrafos curtos, bullets para dados técnicos e negrito em termos importantes para facilitar a leitura.
-
-    ### AVISO LEGAL:
-    Ao final, inclua: "Estes insights são gerados por IA com base nos seus registros e não substituem o acompanhamento médico ou terapêutico profissional."
-
-    Responda em Português do Brasil, mantendo um tom profissional, clínico e acolhedor.
+    EXEMPLO DE INSIGHT PROFUNDO (Siga este estilo):
+    "Observamos que em dias de energia 3/10 seguidos de sono < 6h, sua tolerância a ruído diminui em 40%, resultando em crises 15min mais longas. A estratégia de 'Fones de Ouvido' reduziu a duração desses eventos em 5min comparado ao 'Isolamento'."
 
     ### FORMATO DE RESPOSTA OBRIGATÓRIO:
   Retorne a resposta EXCLUSIVAMENTE em formato JSON, sem blocos de código Markdown (como \`\`\`json), seguindo exatamente esta estrutura:

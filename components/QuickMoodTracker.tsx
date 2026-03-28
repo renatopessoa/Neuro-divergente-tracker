@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MoodIcon } from './MoodIcon';
 import { Zap, Send, CheckCircle2, AlertCircle, Loader2, BatteryLow, Battery, BatteryMedium, BatteryFull } from 'lucide-react';
-import { saveQuickMood } from '@/app/actions';
+import { saveQuickMood, saveBehaviorLog } from '@/app/actions';
 
 interface QuickMoodTrackerProps {
   onSuccess?: () => void;
@@ -19,6 +19,16 @@ export function QuickMoodTracker({ onSuccess, onEmergencyLog }: QuickMoodTracker
   const [note, setNote] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [crisisStartTime, setCrisisStartTime] = useState<number | null>(null);
+  const [showDurationConfirm, setShowDurationConfirm] = useState(false);
+  const [calculatedDuration, setCalculatedDuration] = useState(0);
+
+  useEffect(() => {
+    const savedStart = localStorage.getItem('prisma_crisis_start');
+    if (savedStart) {
+      setCrisisStartTime(parseInt(savedStart));
+    }
+  }, []);
 
   const moodLabels: Record<number, string> = {
     1: 'Muito Ruim',
@@ -76,6 +86,9 @@ export function QuickMoodTracker({ onSuccess, onEmergencyLog }: QuickMoodTracker
           setStatus('idle');
           if (lastEnergy <= 2) {
              setIsExpanded(false);
+             const now = Date.now();
+             setCrisisStartTime(now);
+             localStorage.setItem('prisma_crisis_start', now.toString());
              setShowEmergencyOverlay(true);
           } else {
              setIsExpanded(false);
@@ -306,23 +319,78 @@ export function QuickMoodTracker({ onSuccess, onEmergencyLog }: QuickMoodTracker
               <div className="pt-8 w-full">
                 <button
                   onClick={() => {
-                    setShowEmergencyOverlay(false);
-                    const wantsToLog = window.confirm("Deseja transformar este momento em um Registro de Evento (Behavior Log) para sua próxima análise de IA?");
-                    if (wantsToLog && onEmergencyLog) {
-                      sessionStorage.setItem('emergencyBehaviorLog', JSON.stringify({
-                        mood: moodLevel,
-                        energy: energyLevel,
-                        timestamp: new Date().toISOString()
-                      }));
-                      onEmergencyLog();
+                    const start = crisisStartTime || parseInt(localStorage.getItem('prisma_crisis_start') || '0');
+                    if (start) {
+                      const durationMins = Math.max(1, Math.round((Date.now() - start) / 60000));
+                      setCalculatedDuration(durationMins);
+                      setShowEmergencyOverlay(false);
+                      setShowDurationConfirm(true);
+                    } else {
+                      setShowEmergencyOverlay(false);
+                      if (onSuccess) onSuccess();
                     }
-                    if (onSuccess) onSuccess();
                   }}
                   className="w-full py-4 rounded-2xl bg-white text-slate-900 font-bold text-lg hover:bg-slate-100 transition-all active:scale-95"
                 >
                   Estou melhor
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Duration Confirmation Overlay */}
+      <AnimatePresence>
+        {showDurationConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+             <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative z-10 w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl"
+            >
+              <h3 className="text-xl font-bold text-slate-900 mb-4">Cronômetro de Crise</h3>
+              <p className="text-slate-600 mb-4">
+                Notamos que você precisou de <span className="font-bold text-indigo-600">{calculatedDuration}</span> minutos para se regular. Este tempo está correto?
+              </p>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-slate-500 mb-2">Ajuste o tempo se necessário (minutos):</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  value={calculatedDuration}
+                  onChange={(e) => setCalculatedDuration(parseInt(e.target.value) || 1)}
+                  className="w-full border border-slate-200 rounded-xl p-3 text-lg font-medium text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+
+              <button
+                onClick={async () => {
+                  localStorage.removeItem('prisma_crisis_start');
+                  setCrisisStartTime(null);
+                  
+                  await saveBehaviorLog({
+                     eventType: 'Crise detectada via Micro-check-in',
+                     durationMinutes: calculatedDuration,
+                     description: 'Registro automático de crise a partir do Micro-check-in.',
+                     intensity: 8,
+                  });
+
+                  setShowDurationConfirm(false);
+                  if (onSuccess) onSuccess();
+                }}
+                className="w-full py-4 rounded-xl bg-indigo-600 text-white font-bold text-lg hover:bg-indigo-700 transition-all active:scale-95 shadow-md shadow-indigo-200"
+              >
+                Confirmar e Salvar
+              </button>
             </motion.div>
           </div>
         )}
