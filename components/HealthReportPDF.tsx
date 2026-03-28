@@ -283,6 +283,55 @@ export const HealthReportPDF: React.FC<HealthReportPDFProps> = ({ data }) => {
           )}
         </View>
 
+        {/* Seção de Histórico de Micro-Ciclos */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Histórico de Micro-Ciclos (Humor e Energia)</Text>
+          {data.moodEntries && data.moodEntries.length > 0 ? (
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <View style={[styles.tableColHeader, { width: '25%' }]}>
+                  <Text style={styles.tableCellHeader}>Data/Hora</Text>
+                </View>
+                <View style={[styles.tableColHeader, { width: '15%' }]}>
+                  <Text style={styles.tableCellHeader}>Humor</Text>
+                </View>
+                <View style={[styles.tableColHeader, { width: '15%' }]}>
+                  <Text style={styles.tableCellHeader}>Energia</Text>
+                </View>
+                <View style={[styles.tableColHeader, { width: '45%' }]}>
+                  <Text style={styles.tableCellHeader}>Nota</Text>
+                </View>
+              </View>
+
+              {data.moodEntries.slice(0, 30).map((entry) => {
+                const isCritical = entry.energyLevel <= 2;
+                return (
+                  <View key={entry.id} style={styles.tableRow}>
+                    <View style={[styles.tableCol, { width: '25%' }]}>
+                      <Text style={[styles.tableCell, isCritical && { color: '#c53030', fontWeight: 'bold' }]}>
+                        {format(new Date(entry.createdAt), "dd/MM/yy HH:mm")}
+                      </Text>
+                    </View>
+                    <View style={[styles.tableCol, { width: '15%' }]}>
+                      <Text style={[styles.tableCell, isCritical && { color: '#c53030' }]}>{entry.moodLevel}/5</Text>
+                    </View>
+                    <View style={[styles.tableCol, { width: '15%' }]}>
+                      <Text style={[styles.tableCell, isCritical && { color: '#c53030', fontWeight: 'bold' }]}>{entry.energyLevel}/10</Text>
+                    </View>
+                    <View style={[styles.tableCol, { width: '45%' }]}>
+                      <Text style={[styles.tableCellLeft, isCritical && { color: '#c53030' }]}>
+                        {entry.note || '-'}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          ) : (
+            <Text style={{ color: '#666', fontStyle: 'italic' }}>Nenhum micro-ciclo registrado no período.</Text>
+          )}
+        </View>
+
         {/* Seção de Eventos (Crises) Atualizada */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Seção de Eventos (Crises)</Text>

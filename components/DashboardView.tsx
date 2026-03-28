@@ -134,6 +134,38 @@ export function DashboardView({ checkIns, medications, behaviorLogs, moodEntries
         behaviorLogsCount={behaviorLogs.length} 
       />
 
+      {/* Histórico de Micro-Ciclos (Mood e Energia) */}
+      <div className="bg-surface p-6 rounded-xl shadow-sm border border-border-subtle">
+        <h3 className="font-semibold text-text-main mb-4 flex items-center gap-2">
+          <Activity size={18} className="text-amber-500" /> Registros Rápidos Recentes
+        </h3>
+        <div className="space-y-3">
+          {moodEntries && moodEntries.length > 0 ? (
+            moodEntries.slice(0, 5).map((entry) => (
+              <div key={entry.id} className="flex items-center justify-between p-3 bg-surface-muted rounded-xl border border-border-subtle">
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-text-main">{format(new Date(entry.createdAt), "dd 'de' MMM HH:mm", { locale: ptBR })}</span>
+                  <span className="text-[10px] text-text-muted italic">{entry.note || 'Sem nota'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-center">
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider font-bold mb-1">Humor</span>
+                    <MoodIcon mood={entry.moodLevel} size={16} />
+                  </div>
+                  <div className="w-px h-8 bg-border-subtle mx-1" />
+                  <div className="flex flex-col items-center">
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider font-bold mb-1">Energia</span>
+                    <span className={`text-sm font-bold ${entry.energyLevel <= 2 ? 'text-rose-500' : 'text-amber-500'}`}>{entry.energyLevel}/10</span>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-text-muted text-center py-4">Nenhum registro rápido recente.</p>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-6">
           
