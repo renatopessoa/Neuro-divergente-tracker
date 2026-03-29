@@ -308,18 +308,18 @@ export const HealthReportPDF: React.FC<HealthReportPDFProps> = ({ data }) => {
                 return (
                   <View key={entry.id} style={styles.tableRow}>
                     <View style={[styles.tableCol, { width: '25%' }]}>
-                      <Text style={[styles.tableCell, isCritical && { color: '#c53030', fontWeight: 'bold' }]}>
+                      <Text style={[styles.tableCell, isCritical ? { color: '#c53030', fontWeight: 'bold' } : {}]}>
                         {format(new Date(entry.createdAt), "dd/MM/yy HH:mm")}
                       </Text>
                     </View>
                     <View style={[styles.tableCol, { width: '15%' }]}>
-                      <Text style={[styles.tableCell, isCritical && { color: '#c53030' }]}>{entry.moodLevel}/5</Text>
+                      <Text style={[styles.tableCell, isCritical ? { color: '#c53030' } : {}]}>{entry.moodLevel}/5</Text>
                     </View>
                     <View style={[styles.tableCol, { width: '15%' }]}>
-                      <Text style={[styles.tableCell, isCritical && { color: '#c53030', fontWeight: 'bold' }]}>{entry.energyLevel}/10</Text>
+                      <Text style={[styles.tableCell, isCritical ? { color: '#c53030', fontWeight: 'bold' } : {}]}>{entry.energyLevel}/10</Text>
                     </View>
                     <View style={[styles.tableCol, { width: '45%' }]}>
-                      <Text style={[styles.tableCellLeft, isCritical && { color: '#c53030' }]}>
+                      <Text style={[styles.tableCellLeft, isCritical ? { color: '#c53030' } : {}]}>
                         {entry.note || '-'}
                       </Text>
                     </View>
